@@ -405,7 +405,7 @@ export const portfolio = {
   },
   footer: {
     note: "Designed & engineered by Haseeb Ahmed.",
-    colophon: "Set in Bowlby One, Oswald, Inter & IBM Plex Mono.",
+    // colophon: "Set in Bowlby One, Oswald, Inter & IBM Plex Mono.",
   },
   settings: {
     showPreloader: true,

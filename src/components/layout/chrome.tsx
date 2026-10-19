@@ -1,6 +1,6 @@
 import { useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
-import { ArrowUp, Menu, X } from "lucide-react";
+import { ArrowUp, ArrowUpRight, Menu, X } from "lucide-react";
 import Lenis from "lenis";
 import { portfolio } from "@/data/portfolio";
 import { gsap, ScrollTrigger, prefersReducedMotion } from "@/lib/animations";
@@ -13,7 +13,6 @@ import {
   startIntro,
 } from "@/lib/intro";
 import { cn } from "@/lib/utils";
-import { EdButton } from "@/components/ui/editorial";
 
 export function SmoothScroll({
   lockUntilIntroComplete = false,
@@ -363,57 +362,123 @@ export function Nav({ home = true }: { home?: boolean }) {
 export function Footer() {
   const { site, footer, socialLinks, profile } = portfolio;
   return (
-    <footer className="bg-ink text-ink-foreground">
-      <div className="container-ed py-12">
+    <footer className="relative overflow-hidden bg-ink text-ink-foreground">
+      <div
+        className="pointer-events-none absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-primary/80 to-transparent"
+        aria-hidden
+      />
+      <div className="container-ed relative py-16 sm:py-20 lg:py-24">
         <div
-          className="font-display text-[22vw] leading-[0.8] text-ink-foreground/10 select-none"
+          className="pointer-events-none absolute -right-[0.08em] top-10 select-none font-display text-[clamp(11rem,27vw,25rem)] leading-none text-ink-foreground/[0.035]"
           aria-hidden
         >
           {site.monogram}
         </div>
-        <div className="mt-8 grid gap-6 border-t border-ink-foreground/20 pt-6 md:grid-cols-4">
-          <p className="label-mono">{footer.note}</p>
-          <p className="label-mono text-ink-foreground/60">{footer.colophon}</p>
-          <div className="label-mono flex flex-wrap gap-5">
-            {socialLinks.github && (
-              <a
-                className="hover:text-primary"
-                href={socialLinks.github}
-                target="_blank"
-                rel="noreferrer"
-              >
-                GitHub
-              </a>
-            )}
-            {socialLinks.linkedin && (
-              <a
-                className="hover:text-primary"
-                href={socialLinks.linkedin}
-                target="_blank"
-                rel="noreferrer"
-              >
-                LinkedIn
-              </a>
-            )}
-            <a className="hover:text-primary" href={`mailto:${profile.email}`}>
-              Email
-            </a>
-            {profile.resumeUrl && (
-              <EdButton href={profile.resumeUrl} download variant="inverse">
-                {profile.resumeDownloadLabel}
-              </EdButton>
-            )}
+
+        <div className="relative border-t border-ink-foreground/20 pt-7 sm:pt-9">
+          <div className="grid gap-12 lg:grid-cols-[minmax(0,0.9fr)_minmax(20rem,1.1fr)] lg:gap-20">
+            <div className="flex min-h-full flex-col justify-between gap-10">
+              <div>
+                <div className="font-display text-[clamp(7.25rem,18vw,16rem)] leading-[0.72] tracking-[-0.06em]">
+                  {site.monogram.slice(0, -1)}
+                  <span className="text-primary">{site.monogram.slice(-1)}</span>
+                </div>
+                <p className="label-mono mt-8 max-w-sm text-ink-foreground sm:mt-10">
+                  {footer.note}
+                </p>
+              </div>
+
+              <p className="label-mono max-w-xs leading-relaxed text-ink-foreground/55">
+                {footer.colophon}
+              </p>
+            </div>
+
+            <nav aria-label="Social and contact links" className="self-end">
+              <div className="border-b border-ink-foreground/20">
+                {socialLinks.github && (
+                  <a
+                    className="group relative grid min-h-18 grid-cols-[2.5rem_minmax(0,1fr)_1.5rem] items-center gap-3 overflow-hidden border-t border-ink-foreground/20 px-1 py-4 transition-colors duration-300 hover:bg-ink-foreground/[0.045] focus-visible:outline-offset-[-3px] motion-reduce:transition-none"
+                    href={socialLinks.github}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <span
+                      className="absolute inset-x-0 bottom-0 h-px w-0 bg-primary transition-[width] duration-500 motion-safe:group-hover:w-full motion-reduce:transition-none"
+                      aria-hidden
+                    />
+                    <span className="label-mono relative text-[0.6rem] text-ink-foreground/50">
+                      01
+                    </span>
+                    <span className="relative font-heading text-[clamp(1.5rem,2.6vw,2.2rem)] uppercase leading-none tracking-[0.06em] transition-transform duration-300 motion-safe:group-hover:translate-x-1.5 motion-reduce:transition-none">
+                      GitHub
+                    </span>
+                    <ArrowUpRight
+                      className="relative size-5 transition-transform duration-300 motion-safe:group-hover:translate-x-1 motion-safe:group-hover:-translate-y-1 motion-reduce:transition-none"
+                      aria-hidden
+                    />
+                  </a>
+                )}
+                {socialLinks.linkedin && (
+                  <a
+                    className="group relative grid min-h-18 grid-cols-[2.5rem_minmax(0,1fr)_1.5rem] items-center gap-3 overflow-hidden border-t border-ink-foreground/20 px-1 py-4 transition-colors duration-300 hover:bg-ink-foreground/[0.045] focus-visible:outline-offset-[-3px] motion-reduce:transition-none"
+                    href={socialLinks.linkedin}
+                    target="_blank"
+                    rel="noreferrer"
+                  >
+                    <span
+                      className="absolute inset-x-0 bottom-0 h-px w-0 bg-primary transition-[width] duration-500 motion-safe:group-hover:w-full motion-reduce:transition-none"
+                      aria-hidden
+                    />
+                    <span className="label-mono relative text-[0.6rem] text-ink-foreground/50">
+                      02
+                    </span>
+                    <span className="relative font-heading text-[clamp(1.5rem,2.6vw,2.2rem)] uppercase leading-none tracking-[0.06em] transition-transform duration-300 motion-safe:group-hover:translate-x-1.5 motion-reduce:transition-none">
+                      LinkedIn
+                    </span>
+                    <ArrowUpRight
+                      className="relative size-5 transition-transform duration-300 motion-safe:group-hover:translate-x-1 motion-safe:group-hover:-translate-y-1 motion-reduce:transition-none"
+                      aria-hidden
+                    />
+                  </a>
+                )}
+                <a
+                  className="group relative grid min-h-18 grid-cols-[2.5rem_minmax(0,1fr)_1.5rem] items-center gap-3 overflow-hidden border-t border-ink-foreground/20 px-1 py-4 transition-colors duration-300 hover:bg-ink-foreground/[0.045] focus-visible:outline-offset-[-3px] motion-reduce:transition-none"
+                  href={`mailto:${profile.email}`}
+                >
+                  <span
+                    className="absolute inset-x-0 bottom-0 h-px w-0 bg-primary transition-[width] duration-500 motion-safe:group-hover:w-full motion-reduce:transition-none"
+                    aria-hidden
+                  />
+                  <span className="label-mono relative text-[0.6rem] text-ink-foreground/50">
+                    03
+                  </span>
+                  <span className="relative font-heading text-[clamp(1.5rem,2.6vw,2.2rem)] uppercase leading-none tracking-[0.06em] transition-transform duration-300 motion-safe:group-hover:translate-x-1.5 motion-reduce:transition-none">
+                    Email
+                  </span>
+                  <ArrowUpRight
+                    className="relative size-5 transition-transform duration-300 motion-safe:group-hover:translate-x-1 motion-safe:group-hover:-translate-y-1 motion-reduce:transition-none"
+                    aria-hidden
+                  />
+                </a>
+              </div>
+            </nav>
           </div>
-          <div className="flex justify-between md:justify-end gap-6">
-            <span className="label-mono text-ink-foreground/60">
+
+          <div className="mt-14 flex items-center justify-between gap-6 border-t border-ink-foreground/20 pt-5 sm:mt-16">
+            <span className="label-mono text-[0.6rem] text-ink-foreground/55 sm:text-[0.7rem]">
               © {site.year} {site.name}
             </span>
             <button
+              type="button"
               aria-label="Back to top"
               onClick={() => window.scrollTo({ top: 0, behavior: "smooth" })}
-              className="grid size-10 place-items-center border border-ink-foreground/40 transition-colors hover:border-primary hover:bg-primary"
+              className="group inline-flex size-11 shrink-0 items-center justify-center border border-ink-foreground/40 text-ink-foreground transition-colors duration-300 hover:border-primary hover:bg-primary hover:text-primary-foreground focus-visible:outline-offset-[-3px] motion-reduce:transition-none sm:size-auto sm:gap-3 sm:px-3"
             >
-              <ArrowUp className="size-4" />
+              <span className="label-mono hidden text-[0.6rem] sm:inline">Back to top</span>
+              <ArrowUp
+                className="size-4 transition-transform duration-300 motion-safe:group-hover:-translate-y-1 motion-reduce:transition-none"
+                aria-hidden
+              />
             </button>
           </div>
         </div>
