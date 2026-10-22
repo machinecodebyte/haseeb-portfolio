@@ -8,8 +8,10 @@ import { ProjectArt } from "@/components/projects/ProjectArt";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
 
+type SectionHeadingTag = "h1" | "h2";
+
 /* ---------- ABOUT ---------- */
-export function About() {
+export function About({ headingAs = "h2" }: { headingAs?: SectionHeadingTag } = {}) {
   const ref = useRef<HTMLElement>(null);
   useReveal(ref);
   const { about } = portfolio;
@@ -18,7 +20,11 @@ export function About() {
       <SectionLabel>{about.label}</SectionLabel>
       <div className="mt-8 grid gap-14 lg:grid-cols-12">
         <div className="lg:col-span-7">
-          <MaskedHeading lines={about.heading} className="text-[clamp(2.6rem,6vw,5.5rem)]" />
+          <MaskedHeading
+            as={headingAs}
+            lines={about.heading}
+            className="text-[clamp(2.6rem,6vw,5.5rem)]"
+          />
           <blockquote
             data-reveal
             className="mt-12 border-l-4 border-primary pl-6 font-heading text-3xl uppercase leading-tight md:text-4xl"
@@ -166,7 +172,7 @@ function ProjectCard({
   );
 }
 
-export function Work() {
+export function Work({ headingAs = "h2" }: { headingAs?: SectionHeadingTag } = {}) {
   const ref = useRef<HTMLElement>(null);
   useReveal(ref);
   const { work, projects, settings } = portfolio;
@@ -184,7 +190,11 @@ export function Work() {
         <div className="flex flex-wrap items-end justify-between gap-8">
           <div>
             <SectionLabel>{work.label}</SectionLabel>
-            <MaskedHeading lines={work.heading} className="mt-6 text-[clamp(3rem,9vw,8rem)]" />
+            <MaskedHeading
+              as={headingAs}
+              lines={work.heading}
+              className="mt-6 text-[clamp(3rem,9vw,8rem)]"
+            />
           </div>
           <div role="tablist" aria-label="Filter work" className="flex border">
             {tabs.map((t) => (
@@ -257,7 +267,7 @@ export function Work() {
 }
 
 /* ---------- EXPERIENCE ---------- */
-export function Experience() {
+export function Experience({ headingAs = "h2" }: { headingAs?: SectionHeadingTag } = {}) {
   const ref = useRef<HTMLElement>(null);
   const line = useRef<HTMLDivElement>(null);
   useReveal(ref);
@@ -290,6 +300,7 @@ export function Experience() {
           <div className="lg:sticky lg:top-32">
             <SectionLabel>{experience.label}</SectionLabel>
             <MaskedHeading
+              as={headingAs}
               lines={experience.heading.flatMap((line) => line.split(" "))}
               className="experience-heading mt-6 text-[2rem] leading-none tracking-normal sm:text-5xl md:text-6xl lg:text-[2.5rem] xl:text-[3.5rem] 2xl:text-[4rem] [&_.line-mask]:whitespace-nowrap [&_.line-mask]:pb-[0.14em]"
             />
@@ -429,7 +440,7 @@ function Visual({ kind }: { kind: string }) {
   }
 }
 
-export function Toolkit() {
+export function Toolkit({ headingAs = "h2" }: { headingAs?: SectionHeadingTag } = {}) {
   const ref = useRef<HTMLElement>(null);
   useReveal(ref);
   const [open, setOpen] = useState<string | null>(null);
@@ -447,7 +458,11 @@ export function Toolkit() {
     <section ref={ref} id="expertise" className="border-t py-28">
       <div className="container-ed">
         <SectionLabel>{skills.label}</SectionLabel>
-        <MaskedHeading lines={skills.heading} className="mt-6 text-[clamp(2.6rem,6vw,5.5rem)]" />
+        <MaskedHeading
+          as={headingAs}
+          lines={skills.heading}
+          className="mt-6 text-[clamp(2.6rem,6vw,5.5rem)]"
+        />
         <div className="mt-14 grid gap-4 lg:grid-cols-12">
           {skills.groups.map((g, i) => {
             const isOpen = open === g.id;
@@ -507,7 +522,7 @@ export function Toolkit() {
 }
 
 /* ---------- EDUCATION ---------- */
-export function Education() {
+export function Education({ headingAs = "h2" }: { headingAs?: SectionHeadingTag } = {}) {
   const ref = useRef<HTMLElement>(null);
   useReveal(ref);
   const { education } = portfolio;
@@ -515,7 +530,11 @@ export function Education() {
     <section ref={ref} id="education" className="border-t bg-forest py-28 text-forest-foreground">
       <div className="container-ed">
         <SectionLabel tone="inverse">{education.label}</SectionLabel>
-        <MaskedHeading lines={education.heading} className="mt-6 text-[clamp(2.4rem,5.5vw,5rem)]" />
+        <MaskedHeading
+          as={headingAs}
+          lines={education.heading}
+          className="mt-6 text-[clamp(2.4rem,5.5vw,5rem)]"
+        />
         <div className="mt-14 grid gap-px bg-forest-foreground/20 md:grid-cols-2">
           {education.items.map((e) => (
             <article data-reveal key={e.institution} className="bg-forest p-8">
@@ -557,7 +576,7 @@ export function Education() {
 }
 
 /* ---------- CREDENTIALS ---------- */
-export function Credentials() {
+export function Credentials({ headingAs = "h2" }: { headingAs?: SectionHeadingTag } = {}) {
   const ref = useRef<HTMLElement>(null);
   useReveal(ref);
   const { certifications, settings } = portfolio;
@@ -567,6 +586,7 @@ export function Credentials() {
       <div className="container-ed">
         <SectionLabel>{certifications.label}</SectionLabel>
         <MaskedHeading
+          as={headingAs}
           lines={certifications.heading}
           className="mt-6 text-[clamp(2.4rem,5.5vw,5rem)]"
         />
@@ -632,7 +652,7 @@ export function Credentials() {
 }
 
 /* ---------- CONTACT ---------- */
-export function Contact() {
+export function Contact({ headingAs = "h2" }: { headingAs?: SectionHeadingTag } = {}) {
   const ref = useRef<HTMLElement>(null);
   useReveal(ref);
   const { contact, profile, socialLinks } = portfolio;
@@ -640,7 +660,11 @@ export function Contact() {
     <section ref={ref} id="contact" className="border-t bg-primary py-28 text-primary-foreground">
       <div className="container-ed">
         <SectionLabel tone="inverse">{contact.label}</SectionLabel>
-        <MaskedHeading lines={contact.heading} className="mt-6 text-[clamp(3rem,10vw,9.5rem)]" />
+        <MaskedHeading
+          as={headingAs}
+          lines={contact.heading}
+          className="mt-6 text-[clamp(3rem,10vw,9.5rem)]"
+        />
         <div className="mt-14 grid gap-10 border-t border-primary-foreground/30 pt-10 lg:grid-cols-12">
           <p data-reveal className="text-xl lg:col-span-5">
             {contact.copy}

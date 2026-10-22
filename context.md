@@ -27,16 +27,16 @@ The Vite configuration uses the standard TanStack Start, React, Tailwind, and Ty
 
 ```text
 .
-├── public/                         # Static resume, favicon, crawler rules
+├── public/                         # Static resume and HA. favicon
 ├── src/
 │   ├── assets/                     # CDN-pointer JSON modules for project images
 │   ├── components/
-│   │   ├── layout/                 # Preloader, smooth scroll, navigation, footer
+│   │   ├── layout/                 # Preloader, smooth scroll, navigation, footer and route shell
 │   │   ├── projects/               # Project image/illustrative-preview renderer
 │   │   ├── sections/               # Homepage content sections
 │   │   └── ui/                     # Active editorial primitives and button
 │   ├── data/portfolio.ts           # Single source of editable portfolio content
-│   ├── lib/                        # Motion, error handling, and class helpers
+│   ├── lib/                        # Motion, SEO, error handling, and class helpers
 │   ├── routes/                     # TanStack file routes
 │   ├── test/                       # Vitest setup and invariants
 │   ├── router.tsx                  # Router factory and query-client context
@@ -57,10 +57,13 @@ The Vite configuration uses the standard TanStack Start, React, Tailwind, and Ty
 | URL               | Source                          | Behavior and data                                                                                                                                                       |
 | ----------------- | ------------------------------- | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | `/`               | `src/routes/index.tsx`          | Renders preloader, navigation, hero, marquee, about, work, experience, toolkit, education, credentials, contact, and footer. Uses `portfolio`.                          |
+| `/about` … `/contact` | `src/routes/*.tsx` + `*.lazy.tsx` | Dedicated, code-split pages reuse the corresponding full homepage section with a page-level H1, shared chrome and route-specific metadata.                          |
 | `/projects/$slug` | `src/routes/projects.$slug.tsx` | Loader resolves a project via `getProject`. It returns 404 unless the project exists and has `caseStudyEnabled: true`; page data and metadata derive from that project. |
+| `/robots.txt`     | `src/routes/robots[.]txt.ts`    | Dynamic crawler directives generated from the configured site origin.                                                                                                  |
+| `/sitemap.xml`    | `src/routes/sitemap[.]xml.ts`   | Dynamic sitemap for public pages and enabled case studies; returns 404 until a production origin is configured.                                                       |
 | any unmatched URL | `src/routes/__root.tsx`         | Root not-found component presents a home link.                                                                                                                          |
 
-`src/routes/__root.tsx` supplies the HTML shell, Google font links, favicon, global stylesheet, baseline metadata, React Query provider, error boundary, and TanStack scripts. Home and case-study routes add accurate title, description, Open Graph title/description/type, and Twitter card metadata. No production domain has been confirmed: `portfolio.site.url` remains empty. `public/robots.txt` permits crawlers. There is no generated sitemap or structured-data implementation in the current source.
+`src/routes/__root.tsx` supplies the HTML shell, Google font links, HA. SVG favicon, global stylesheet, baseline metadata, React Query provider, error boundary, and TanStack scripts. `src/lib/seo.ts` derives page metadata, canonical links, truthful JSON-LD, robots and sitemap XML from `portfolio`. Home, dedicated pages and case studies have route-specific metadata. No production domain has been confirmed: `portfolio.site.url` remains empty, so canonical links and a sitemap are intentionally withheld until the owner sets it.
 
 ## 5. Application architecture and components
 
@@ -71,13 +74,15 @@ All page components read content from `src/data/portfolio.ts`; they do not own e
 | `src/router.tsx`                         | Creates the TanStack Router with a `QueryClient`, route tree, scroll restoration, and preload policy.                                                              |
 | `src/routes/index.tsx`                   | Composes the home-page modules.                                                                                                                                    |
 | `src/routes/projects.$slug.tsx`          | Builds the case study, reading loader data; includes scroll progress, architecture, gallery, links, and previous/next case-study navigation.                       |
-| `src/components/layout/chrome.tsx`       | `Preloader`, `SmoothScroll`, responsive `Nav`, and `Footer`. Navigation observes section visibility, locks body scroll for its mobile dialog, and supports Escape. |
+| `src/components/layout/chrome.tsx`       | `Preloader`, `SmoothScroll`, responsive `Nav`, and `Footer`. Navigation links to dedicated routes, locks body scroll for its mobile dialog, and supports Escape. |
+| `src/components/layout/page-shell.tsx`   | Shared chrome for dedicated pages without repeating the homepage preloader. |
 | `src/components/sections/hero.tsx`       | Hero and marquee. Coordinates the preloader event with GSAP hero animation and uses portfolio CTAs/social links.                                                   |
 | `src/components/sections/content.tsx`    | `About`, `Work`, `Experience`, `Toolkit`, `Education`, `Credentials`, and `Contact`. `Work` owns the local All Work/Personal/Company filter state.                 |
 | `src/components/projects/ProjectArt.tsx` | Shows an owner-supplied CDN image when available, otherwise renders a clearly labelled decorative preview for a project.                                           |
 | `src/components/ui/editorial.tsx`        | `MaskedHeading`, `SectionLabel`, magnetic button wrapper, `EdButton`, and `CopyEmail`.                                                                             |
 | `src/components/ui/button.tsx`           | Small class-variance-authority/Radix Slot button used by the work filter.                                                                                          |
 | `src/lib/animations.ts`                  | Registers ScrollTrigger only in the browser, exposes the reduced-motion check, and implements scoped, cleanup-safe reveal animations.                              |
+| `src/lib/seo.ts`                         | Builds truthful route metadata, structured data, canonical URLs, robots rules and sitemap XML from central portfolio data.                                         |
 | `src/lib/utils.ts`                       | `cn` class-name merge helper.                                                                                                                                      |
 | `src/start.ts`                           | Start-level error middleware and CSRF middleware for server functions.                                                                                             |
 | `src/server.ts`                          | SSR entry wrapper that converts catastrophic server errors into the local HTML error page.                                                                         |
@@ -119,7 +124,7 @@ GSAP drives the preloader, hero entrance/parallax, masked headings, `[data-revea
 
 ## 9. Assets, configuration, and security
 
-`public/favicon.ico`, `public/robots.txt`, and the unchanged resume are the public static assets. No environment-variable names are referenced by application source. The framework can inject `VITE_*` variables through its platform config, but none are consumed by this portfolio.
+`public/favicon.svg` and the unchanged resume are the public static assets. No environment-variable names are referenced by application source. Set the real published HTTPS origin in `portfolio.site.url` before deployment; this enables canonical URLs, Open Graph URLs, the sitemap and its robots reference without inventing a domain.
 
 The SSR layer adds CSRF protection for any future TanStack server functions. There is no authentication, persistence layer, or secret in this repository. Do not place tokens, credentials, or private URLs in `portfolio.ts` or committed configuration.
 
@@ -135,11 +140,11 @@ npm run build
 npm run preview
 ```
 
-`src/test/portfolio.test.ts` verifies unique project IDs, the exact Personal/Company distribution, and verified company URLs. `src/test/app-routing.test.tsx` verifies that `/` matches a real route. `src/test/setup.ts` loads Testing Library matchers. The generated `src/routeTree.gen.ts` belongs to the router toolchain; do not manually edit it.
+`src/test/portfolio.test.ts` verifies unique project IDs, the exact Personal/Company distribution, and verified company URLs. `src/test/app-routing.test.tsx` verifies home, dedicated pages and a case study match real routes. `src/test/setup.ts` loads Testing Library matchers. The generated `src/routeTree.gen.ts` belongs to the router toolchain; do not manually edit it.
 
 ## 11. Known limitations
 
-- No deployment domain, sitemap, canonical tag, social-preview image, or structured data is confirmed in source.
+- No production domain or social-preview image is confirmed in source. Canonical URLs, Open Graph URLs and the sitemap activate only after `portfolio.site.url` contains the real deployment origin.
 - Browser-level responsive, animation, live-link, and PDF download checks require a running browser and were not encoded as automated tests.
 - Fonts are loaded from Google Fonts at runtime.
 - The app intentionally remains TanStack Start rather than Next.js because of the repository platform constraint.

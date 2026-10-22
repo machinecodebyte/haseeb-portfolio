@@ -1,11 +1,12 @@
 import { useEffect, useRef, useState } from "react";
 import { createFileRoute, Link, notFound } from "@tanstack/react-router";
 import { ArrowLeft, ArrowRight } from "lucide-react";
-import { allProjects, getProject, portfolio } from "@/data/portfolio";
+import { allProjects, getProject } from "@/data/portfolio";
 import { Footer, Nav, SmoothScroll } from "@/components/layout/chrome";
 import { EdButton, MaskedHeading, SectionLabel } from "@/components/ui/editorial";
 import { ProjectArt } from "@/components/projects/ProjectArt";
 import { useReveal } from "@/lib/animations";
+import { pageHead, projectHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/projects/$slug")({
   loader: ({ params }) => {
@@ -15,18 +16,7 @@ export const Route = createFileRoute("/projects/$slug")({
   },
   head: ({ loaderData }) => {
     const p = loaderData?.project;
-    const title = p ? `${p.title} — Case Study | ${portfolio.site.name}` : "Case study";
-    const desc = p?.description ?? portfolio.seo.description;
-    return {
-      meta: [
-        { title },
-        { name: "description", content: desc },
-        { property: "og:title", content: title },
-        { property: "og:description", content: desc },
-        { property: "og:type", content: "article" },
-        { name: "twitter:card", content: "summary_large_image" },
-      ],
-    };
+    return p ? projectHead(p) : pageHead("work");
   },
   component: CaseStudy,
   notFoundComponent: () => (
@@ -93,17 +83,33 @@ function CaseStudy() {
     <>
       <Progress />
       <SmoothScroll />
-      <Nav home={false} />
+      <Nav />
       <main ref={ref} className="pt-36">
         <div className="container-ed">
+          <nav aria-label="Breadcrumb" className="label-mono text-muted-foreground">
+            <ol className="flex flex-wrap items-center gap-2">
+              <li>
+                <Link to="/" className="hover:text-primary">
+                  Home
+                </Link>
+              </li>
+              <li aria-hidden>/</li>
+              <li>
+                <Link to="/work" className="hover:text-primary">
+                  Work
+                </Link>
+              </li>
+              <li aria-hidden>/</li>
+              <li aria-current="page">{p.title}</li>
+            </ol>
+          </nav>
           <Link
-            to="/"
-            hash="work"
-            className="label-mono inline-flex items-center gap-2 hover:text-primary"
+            to="/work"
+            className="label-mono mt-8 inline-flex items-center gap-2 hover:text-primary"
           >
             <ArrowLeft className="size-3" /> All work
           </Link>
-          <div className="mt-8">
+          <div className="mt-6">
             <SectionLabel>
               Case study — {p.category === "company" ? "Company work" : "Personal project"}
             </SectionLabel>

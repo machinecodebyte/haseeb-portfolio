@@ -1,5 +1,5 @@
 import { useEffect, useRef, useState } from "react";
-import { Link } from "@tanstack/react-router";
+import { Link, useLocation } from "@tanstack/react-router";
 import { ArrowUp, ArrowUpRight, Menu, X } from "lucide-react";
 import Lenis from "lenis";
 import { portfolio } from "@/data/portfolio";
@@ -193,12 +193,13 @@ export function Preloader() {
   );
 }
 
-export function Nav({ home = true }: { home?: boolean }) {
+export function Nav() {
   const [hidden, setHidden] = useState(false);
   const [compact, setCompact] = useState(false);
   const [open, setOpen] = useState(false);
-  const [active, setActive] = useState("");
   const menuRef = useRef<HTMLDivElement>(null);
+  const { pathname } = useLocation();
+  const activePath = pathname.startsWith("/projects/") ? "/work" : pathname;
 
   useEffect(() => {
     let last = window.scrollY;
@@ -209,17 +210,8 @@ export function Nav({ home = true }: { home?: boolean }) {
       last = y;
     };
     window.addEventListener("scroll", onScroll, { passive: true });
-    const io = new IntersectionObserver(
-      (es) => es.forEach((e) => e.isIntersecting && setActive("#" + e.target.id)),
-      { rootMargin: "-45% 0px -50% 0px" },
-    );
-    portfolio.navigation.forEach((n) => {
-      const el = document.querySelector(n.href);
-      if (el) io.observe(el);
-    });
     return () => {
       window.removeEventListener("scroll", onScroll);
-      io.disconnect();
     };
   }, []);
 
@@ -242,8 +234,6 @@ export function Nav({ home = true }: { home?: boolean }) {
       window.removeEventListener("keydown", key);
     };
   }, [open]);
-
-  const href = (h: string) => (home ? h : "/" + h);
 
   return (
     <>
@@ -281,14 +271,15 @@ export function Nav({ home = true }: { home?: boolean }) {
                 Portfolio / {portfolio.site.year}
               </span>
             </Link>
-            <ul className="hidden items-center gap-7 lg:flex">
+            <ul className="hidden items-center gap-5 xl:flex">
               {portfolio.navigation.map((n, i) => (
                 <li key={n.href}>
-                  <a
-                    href={href(n.href)}
+                  <Link
+                    to={n.href}
+                    preload={false}
                     className={cn(
                       "group relative font-heading text-sm uppercase tracking-[0.1em] transition-colors hover:text-primary",
-                      active === n.href && "text-primary",
+                      activePath === n.href && "text-primary",
                     )}
                   >
                     <span className="label-mono mr-1 text-[0.6rem] text-muted-foreground">
@@ -298,21 +289,22 @@ export function Nav({ home = true }: { home?: boolean }) {
                     <span
                       className={cn(
                         "absolute -bottom-1 left-0 h-px bg-primary transition-all duration-300",
-                        active === n.href ? "w-full" : "w-0 group-hover:w-full",
+                        activePath === n.href ? "w-full" : "w-0 group-hover:w-full",
                       )}
                     />
-                  </a>
+                  </Link>
                 </li>
               ))}
             </ul>
-            <a
-              href={href("#contact")}
-              className="hidden bg-foreground px-4 py-2 font-heading text-sm uppercase tracking-[0.1em] text-background transition-colors hover:bg-primary lg:inline-block"
+            <Link
+              to="/contact"
+              preload={false}
+              className="hidden bg-foreground px-4 py-2 font-heading text-sm uppercase tracking-[0.1em] text-background transition-colors hover:bg-primary xl:inline-block"
             >
               Let's talk
-            </a>
+            </Link>
             <button
-              className="lg:hidden"
+              className="xl:hidden"
               aria-label="Open menu"
               aria-expanded={open}
               onClick={() => setOpen(true)}
@@ -341,14 +333,15 @@ export function Nav({ home = true }: { home?: boolean }) {
           <ul className="mt-12 space-y-2">
             {portfolio.navigation.map((n, i) => (
               <li key={n.href} className="overflow-hidden">
-                <a
+                <Link
                   onClick={() => setOpen(false)}
-                  href={href(n.href)}
+                  to={n.href}
+                  preload={false}
                   className="m-link flex items-baseline gap-4 font-display text-5xl hover:text-primary"
                 >
                   <span className="label-mono text-ink-foreground/50">0{i + 1}</span>
                   {n.label}
-                </a>
+                </Link>
               </li>
             ))}
           </ul>

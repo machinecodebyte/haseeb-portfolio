@@ -1,0 +1,6 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 72 64" role="img" aria-label="HA.">
+  <title>HA.</title>
+  <rect width="72" height="64" rx="6" fill="#1B1915"/>
+  <path fill="#F7F2E8" d="M7 14h7v13h10V14h7v36h-7V34H14v16H7zM32 50l10-36h8l10 36h-7l-2-8H41l-2 8zm11-14h6l-3-12z"/>
+  <circle cx="64" cy="46" r="4" fill="#F15A24"/>
+</svg>

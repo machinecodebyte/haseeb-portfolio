@@ -1,5 +1,4 @@
 import { createFileRoute } from "@tanstack/react-router";
-import { portfolio } from "@/data/portfolio";
 import { Footer, Nav, Preloader, SmoothScroll } from "@/components/layout/chrome";
 import { Hero, Marquee } from "@/components/sections/hero";
 import {
@@ -11,18 +10,10 @@ import {
   Toolkit,
   Work,
 } from "@/components/sections/content";
+import { pageHead } from "@/lib/seo";
 
 export const Route = createFileRoute("/")({
-  head: () => ({
-    meta: [
-      { title: portfolio.seo.title },
-      { name: "description", content: portfolio.seo.description },
-      { property: "og:title", content: portfolio.seo.title },
-      { property: "og:description", content: portfolio.seo.description },
-      { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
-    ],
-  }),
+  head: () => pageHead("home"),
   component: Index,
 });
 

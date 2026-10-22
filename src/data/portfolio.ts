@@ -67,6 +67,15 @@ export type Education = {
   focus: string[];
 };
 
+export type PortfolioRouteKey =
+  "home" | "about" | "work" | "experience" | "expertise" | "education" | "credentials" | "contact";
+
+export type PortfolioPageMetadata = {
+  path: string;
+  title: string;
+  description: string;
+};
+
 const personal: Project[] = [
   {
     id: "invora",
@@ -149,6 +158,56 @@ export const portfolio = {
     title: "Haseeb Ahmed — Full-Stack Software Engineer | The Engineer's Edition",
     description:
       "Portfolio of Haseeb Ahmed, a full-stack software engineer building web experiences, backend systems and intelligent applications.",
+    pages: {
+      home: {
+        path: "/",
+        title: "Haseeb Ahmed — Full-Stack Software Engineer | The Engineer's Edition",
+        description:
+          "Portfolio of Haseeb Ahmed, a full-stack software engineer building web experiences, backend systems and intelligent applications.",
+      },
+      about: {
+        path: "/about",
+        title: "About Haseeb Ahmed — Full-Stack Software Engineer",
+        description:
+          "Learn about Haseeb Ahmed's full-stack engineering work across frontend and backend web applications, practical systems and machine learning study.",
+      },
+      work: {
+        path: "/work",
+        title: "Selected Work — Haseeb Ahmed",
+        description:
+          "Explore Haseeb Ahmed's personal projects and company-delivered web work, including INVORA, PasteHub and selected Linkup Group websites.",
+      },
+      experience: {
+        path: "/experience",
+        title: "Experience — Haseeb Ahmed",
+        description:
+          "Review Haseeb Ahmed's software engineering and people and business operations experience at Linkup Group Pvt Ltd.",
+      },
+      expertise: {
+        path: "/expertise",
+        title: "Expertise — Haseeb Ahmed",
+        description:
+          "See Haseeb Ahmed's technology toolkit across frontend engineering, backend systems, data, motion engineering and AI and ML exploration.",
+      },
+      education: {
+        path: "/education",
+        title: "Education — Haseeb Ahmed",
+        description:
+          "View Haseeb Ahmed's MCA specialisation in Machine Learning and Bachelor of Computer Applications education.",
+      },
+      credentials: {
+        path: "/credentials",
+        title: "Credentials — Haseeb Ahmed",
+        description:
+          "See the current credentials section for Haseeb Ahmed's engineering portfolio.",
+      },
+      contact: {
+        path: "/contact",
+        title: "Contact Haseeb Ahmed",
+        description:
+          "Contact Haseeb Ahmed about software engineering roles, projects and ideas, or download the current resume.",
+      },
+    } satisfies Record<PortfolioRouteKey, PortfolioPageMetadata>,
   },
   profile: {
     name: "Haseeb Ahmed",
@@ -167,13 +226,14 @@ export const portfolio = {
     linkedin: "https://www.linkedin.com/in/haseeb-ahmed-8166b0157",
   },
   navigation: [
-    { label: "About", href: "#about" },
-    { label: "Work", href: "#work" },
-    { label: "Experience", href: "#experience" },
-    { label: "Expertise", href: "#expertise" },
-    { label: "Credentials", href: "#credentials" },
-    { label: "Contact", href: "#contact" },
-  ],
+    { label: "About", href: "/about" },
+    { label: "Work", href: "/work" },
+    { label: "Experience", href: "/experience" },
+    { label: "Expertise", href: "/expertise" },
+    { label: "Education", href: "/education" },
+    { label: "Credentials", href: "/credentials" },
+    { label: "Contact", href: "/contact" },
+  ] as const,
   hero: {
     eyebrow: "Independent engineering portfolio — Edition 001",
     status: "[ System status: operational ]",
@@ -405,7 +465,7 @@ export const portfolio = {
   },
   footer: {
     note: "Designed & engineered by Haseeb Ahmed.",
-    // colophon: "Set in Bowlby One, Oswald, Inter & IBM Plex Mono.",
+    colophon: "Set in Bowlby One, Oswald, Inter & IBM Plex Mono.",
   },
   settings: {
     showPreloader: true,

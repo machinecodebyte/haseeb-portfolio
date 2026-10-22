@@ -11,6 +11,7 @@ import {
 import { type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
+import { portfolio } from "@/data/portfolio";
 
 function NotFoundComponent() {
   return (
@@ -74,11 +75,12 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
     meta: [
       { charSet: "utf-8" },
       { name: "viewport", content: "width=device-width, initial-scale=1" },
-      { title: "Haseeb Ahmed — The Engineer's Edition" },
-      { name: "description", content: "Portfolio of Haseeb Ahmed, full-stack software engineer." },
-      { name: "author", content: "Haseeb Ahmed" },
+      { title: portfolio.seo.title },
+      { name: "description", content: portfolio.seo.description },
+      { name: "author", content: portfolio.profile.name },
+      { name: "theme-color", content: "#1B1915" },
       { property: "og:type", content: "website" },
-      { name: "twitter:card", content: "summary_large_image" },
+      { name: "twitter:card", content: "summary" },
     ],
     links: [
       { rel: "stylesheet", href: appCss },
@@ -88,7 +90,7 @@ export const Route = createRootRouteWithContext<{ queryClient: QueryClient }>()(
         rel: "stylesheet",
         href: "https://fonts.googleapis.com/css2?family=Bowlby+One&family=IBM+Plex+Mono:wght@400;500&family=Inter:wght@400;500;600&family=Oswald:wght@400;500;600&family=Permanent+Marker&display=swap",
       },
-      { rel: "icon", href: "/favicon.ico", type: "image/x-icon" },
+      { rel: "icon", href: "/favicon.svg?v=ha-1", type: "image/svg+xml" },
     ],
   }),
   shellComponent: RootShell,
