@@ -13,6 +13,9 @@ import appCss from "../styles.css?url";
 import bowlbyOneFont from "@/assets/fonts/bowlby-one-latin.woff2?url";
 import { portfolio } from "@/data/portfolio";
 
+// Vercel Analytics
+import { Analytics } from "@vercel/analytics/react";
+
 function NotFoundComponent() {
   return (
     <div className="flex min-h-screen items-center justify-center bg-background px-4">
@@ -108,6 +111,8 @@ function RootShell({ children }: { children: ReactNode }) {
       </head>
       <body>
         {children}
+        {/* Vercel Web Analytics */}
+        <Analytics />
         <Scripts />
       </body>
     </html>
