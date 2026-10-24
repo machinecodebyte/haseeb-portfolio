@@ -63,7 +63,7 @@ The Vite configuration uses the standard TanStack Start, React, Tailwind, and Ty
 | `/sitemap.xml`    | `src/routes/sitemap[.]xml.ts`   | Dynamic sitemap for public pages and enabled case studies; returns 404 until a production origin is configured.                                                       |
 | any unmatched URL | `src/routes/__root.tsx`         | Root not-found component presents a home link.                                                                                                                          |
 
-`src/routes/__root.tsx` supplies the HTML shell, Google font links, HA. SVG favicon, global stylesheet, baseline metadata, React Query provider, error boundary, and TanStack scripts. `src/lib/seo.ts` derives page metadata, canonical links, truthful JSON-LD, robots and sitemap XML from `portfolio`. Home, dedicated pages and case studies have route-specific metadata. No production domain has been confirmed: `portfolio.site.url` remains empty, so canonical links and a sitemap are intentionally withheld until the owner sets it.
+`src/routes/__root.tsx` supplies the HTML shell, local critical-font preload, HA. SVG favicon, global stylesheet, baseline metadata, error boundary, and TanStack scripts. `src/lib/seo.ts` derives page metadata, canonical links, truthful JSON-LD, robots and sitemap XML from `portfolio`. Home, dedicated pages and case studies have route-specific metadata. No production domain has been confirmed: `portfolio.site.url` remains empty, so canonical links and a sitemap are intentionally withheld until the owner sets it.
 
 ## 5. Application architecture and components
 
@@ -71,17 +71,17 @@ All page components read content from `src/data/portfolio.ts`; they do not own e
 
 | Path                                     | Responsibility                                                                                                                                                     |
 | ---------------------------------------- | ------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
-| `src/router.tsx`                         | Creates the TanStack Router with a `QueryClient`, route tree, scroll restoration, and preload policy.                                                              |
+| `src/router.tsx`                         | Creates the TanStack Router with the generated route tree and scroll restoration.                                                                                    |
 | `src/routes/index.tsx`                   | Composes the home-page modules.                                                                                                                                    |
 | `src/routes/projects.$slug.tsx`          | Builds the case study, reading loader data; includes scroll progress, architecture, gallery, links, and previous/next case-study navigation.                       |
-| `src/components/layout/chrome.tsx`       | `Preloader`, `SmoothScroll`, responsive `Nav`, and `Footer`. Navigation links to dedicated routes, locks body scroll for its mobile dialog, and supports Escape. |
+| `src/components/layout/chrome.tsx`       | `Preloader`, progressively enhanced `SmoothScroll`, responsive `Nav`, and `Footer`. Lenis and ScrollTrigger load after the intro and first scroll intent; native scrolling remains the fallback. Navigation links to dedicated routes, locks body scroll for its mobile dialog, and supports Escape. |
 | `src/components/layout/page-shell.tsx`   | Shared chrome for dedicated pages without repeating the homepage preloader. |
 | `src/components/sections/hero.tsx`       | Hero and marquee. Coordinates the preloader event with GSAP hero animation and uses portfolio CTAs/social links.                                                   |
-| `src/components/sections/content.tsx`    | `About`, `Work`, `Experience`, `Toolkit`, `Education`, `Credentials`, and `Contact`. `Work` owns the local All Work/Personal/Company filter state.                 |
+| `src/components/sections/content.tsx`    | `About`, `Work`, `Experience`, `Toolkit`, `Education`, `Credentials`, and `Contact`. `Work` owns the local All Work/Personal/Company filter state; decorative project art and scroll-triggered motion load only when relevant. |
 | `src/components/projects/ProjectArt.tsx` | Shows an owner-supplied CDN image when available, otherwise renders a clearly labelled decorative preview for a project.                                           |
 | `src/components/ui/editorial.tsx`        | `MaskedHeading`, `SectionLabel`, magnetic button wrapper, `EdButton`, and `CopyEmail`.                                                                             |
 | `src/components/ui/button.tsx`           | Small class-variance-authority/Radix Slot button used by the work filter.                                                                                          |
-| `src/lib/animations.ts`                  | Registers ScrollTrigger only in the browser, exposes the reduced-motion check, and implements scoped, cleanup-safe reveal animations.                              |
+| `src/lib/animations.ts`                  | Dynamically loads ScrollTrigger only when motion is needed, exposes the reduced-motion check, and implements scoped, cleanup-safe near-viewport reveal animations.  |
 | `src/lib/seo.ts`                         | Builds truthful route metadata, structured data, canonical URLs, robots rules and sitemap XML from central portfolio data.                                         |
 | `src/lib/utils.ts`                       | `cn` class-name merge helper.                                                                                                                                      |
 | `src/start.ts`                           | Start-level error middleware and CSRF middleware for server functions.                                                                                             |
@@ -114,17 +114,17 @@ No project screenshot assets are currently bundled. `ProjectArt` renders its exi
 
 `src/styles.css` defines the actual design tokens. Main colors are background `oklch(0.962 0.016 85)` (#F7F2E8), foreground `oklch(0.21 0.02 65)` (#21180F), card #FFFDF8, orange primary `oklch(0.66 0.2 40)` (#F15A24), border #D8CBBB, ink #1B1915, and forest `oklch(0.36 0.07 158)` (#0C4A2E). Radius is 2px.
 
-Google Fonts load Bowlby One/Oswald for display and headings, Inter for body copy, IBM Plex Mono for labels, and Permanent Marker for annotations. `container-ed` caps width at 1440px and uses responsive inline padding. Typography combines `font-display`, `font-heading`, `label-mono`, `line-mask`, paper grain, thin borders, and CSS grid. Tailwind's normal responsive tiers (`sm`, `md`, `lg`, `xl`, `2xl`) drive layout changes; major compositions collapse to single-column or flexible layouts on smaller widths.
+The existing Bowlby One/Oswald display and heading fonts, Inter body font, IBM Plex Mono labels, and Permanent Marker annotations are self-hosted as exact Google Fonts WOFF2 subsets under `src/assets/fonts`, with descriptors in `src/styles/fonts.css`. Vite emits hashed production assets and the Bowlby One LCP face is preloaded. `container-ed` caps width at 1440px and uses responsive inline padding. Typography combines `font-display`, `font-heading`, `label-mono`, `line-mask`, paper grain, thin borders, and CSS grid. Tailwind's normal responsive tiers (`sm`, `md`, `lg`, `xl`, `2xl`) drive layout changes; major compositions collapse to single-column or flexible layouts on smaller widths.
 
 ## 8. Animation and accessibility
 
-GSAP drives the preloader, hero entrance/parallax, masked headings, `[data-reveal]` scroll reveals, timeline line, and mobile-menu links. `useReveal` scopes GSAP contexts to a component and reverts them at unmount. `SmoothScroll` connects Lenis to GSAP's ticker and destroys it during cleanup. `Magnetic` only enables on fine pointers. CSS supplies the marquee and status-dot animations.
+GSAP drives the preloader, hero entrance/parallax, masked headings, `[data-reveal]` scroll reveals, timeline line, and mobile-menu links. The ScrollTrigger plugin is code-split and initialized after the intro only for nearby content; `useReveal` scopes GSAP contexts to a component and reverts them at unmount. `SmoothScroll` dynamically connects Lenis to GSAP's ticker after intentional scroll input and destroys it during cleanup. `Magnetic` only enables on fine pointers. CSS supplies the marquee and status-dot animations.
 
 `prefers-reduced-motion` disables GSAP/Lenis setup and CSS marquee/pulse animation. Accessible patterns include semantic sections/headings/lists, labelled primary navigation and mobile dialog, `aria-expanded` filter/toolkit state, keyboard Escape to close the mobile menu, focus-visible outlines, descriptive image alt text, external-link rel protection, and live copy-email feedback. Known limitation: focus is placed in the mobile menu but focus is not fully trapped within it.
 
 ## 9. Assets, configuration, and security
 
-`public/favicon.svg` and the unchanged resume are the public static assets. No environment-variable names are referenced by application source. Set the real published HTTPS origin in `portfolio.site.url` before deployment; this enables canonical URLs, Open Graph URLs, the sitemap and its robots reference without inventing a domain.
+`public/favicon.svg` and the unchanged resume are the public static assets. The font files are build-time source assets rather than editable portfolio media. No environment-variable names are referenced by application source. Set the real published HTTPS origin in `portfolio.site.url` before deployment; this enables canonical URLs, Open Graph URLs, the sitemap and its robots reference without inventing a domain.
 
 The SSR layer adds CSRF protection for any future TanStack server functions. There is no authentication, persistence layer, or secret in this repository. Do not place tokens, credentials, or private URLs in `portfolio.ts` or committed configuration.
 
@@ -146,7 +146,7 @@ npm run preview
 
 - No production domain or social-preview image is confirmed in source. Canonical URLs, Open Graph URLs and the sitemap activate only after `portfolio.site.url` contains the real deployment origin.
 - Browser-level responsive, animation, live-link, and PDF download checks require a running browser and were not encoded as automated tests.
-- Fonts are loaded from Google Fonts at runtime.
+- The intentionally retained full-screen intro and GSAP-heavy editorial animation are the remaining largest lab-performance costs, particularly on throttled mobile emulation. They are progressively enhanced rather than removed to preserve the established visual experience.
 - The app intentionally remains TanStack Start rather than Next.js because of the repository platform constraint.
 
 ## 12. Instructions for future coding assistants

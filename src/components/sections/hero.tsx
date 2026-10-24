@@ -1,7 +1,7 @@
 import { useEffect, useRef, useState, type RefObject } from "react";
 import { ArrowDown } from "lucide-react";
 import { portfolio } from "@/data/portfolio";
-import { gsap, prefersReducedMotion } from "@/lib/animations";
+import { gsap, loadScrollTrigger, prefersReducedMotion } from "@/lib/animations";
 import { countDecodableCharacters, decodeText } from "@/lib/continuous-decode";
 import { hasCompletedIntro, introCompleteEvent, introReadyEvent, isIntroReady } from "@/lib/intro";
 import { EdButton } from "@/components/ui/editorial";
@@ -164,6 +164,37 @@ export function Hero() {
   useEffect(() => {
     if (prefersReducedMotion()) return;
     let ctx: gsap.Context | undefined;
+    let parallax: gsap.core.Tween | undefined;
+    let cancelled = false;
+
+    const initialiseParallax = () => {
+      void loadScrollTrigger()
+        .then(() => {
+          if (cancelled || !ref.current) return;
+          parallax = gsap.to(".h-mono", {
+            yPercent: 25,
+            ease: "none",
+            scrollTrigger: {
+              trigger: ref.current,
+              start: "top top",
+              end: "bottom top",
+              scrub: true,
+            },
+          });
+        })
+        .catch(() => {
+          // The static hero remains fully usable when this optional enhancement is unavailable.
+        });
+    };
+
+    const initialiseParallaxOnScroll = () => {
+      if (window.scrollY > 0) {
+        initialiseParallax();
+        return;
+      }
+      window.addEventListener("scroll", initialiseParallax, { once: true, passive: true });
+    };
+
     const play = () => {
       ctx = gsap.context(() => {
         const tl = gsap.timeline({ defaults: { ease: "power4.out" } });
@@ -176,15 +207,13 @@ export function Hero() {
             "-=0.6",
           )
           .from(".h-panel", { y: 40, opacity: 0, duration: 1 }, "-=1");
-        gsap.to(".h-mono", {
-          yPercent: 25,
-          ease: "none",
-          scrollTrigger: { trigger: ref.current, start: "top top", end: "bottom top", scrub: true },
-        });
       }, ref);
     };
     if (isIntroReady() || !portfolio.settings.showPreloader) play();
     else window.addEventListener(introReadyEvent, play, { once: true });
+
+    if (hasCompletedIntro()) initialiseParallaxOnScroll();
+    else window.addEventListener(introCompleteEvent, initialiseParallaxOnScroll, { once: true });
 
     const el = orb.current;
     const fine = window.matchMedia("(pointer: fine)").matches;
@@ -198,8 +227,12 @@ export function Hero() {
     };
     if (fine) window.addEventListener("pointermove", move);
     return () => {
+      cancelled = true;
       ctx?.revert();
+      parallax?.kill();
       window.removeEventListener(introReadyEvent, play);
+      window.removeEventListener(introCompleteEvent, initialiseParallaxOnScroll);
+      window.removeEventListener("scroll", initialiseParallax);
       window.removeEventListener("pointermove", move);
     };
   }, []);

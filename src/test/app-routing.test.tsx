@@ -1,4 +1,3 @@
-import { QueryClient } from "@tanstack/react-query";
 import { createRouter, rootRouteId } from "@tanstack/react-router";
 import { describe, expect, it } from "vitest";
 
@@ -18,7 +17,7 @@ describe("App routing", () => {
     "/contact",
     "/projects/invora",
   ])("matches a real page for %s instead of falling back to not found", (pathname) => {
-    const router = createRouter({ routeTree, context: { queryClient: new QueryClient() } });
+    const router = createRouter({ routeTree });
 
     const matches = router.matchRoutes(pathname);
 

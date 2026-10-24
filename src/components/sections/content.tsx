@@ -1,14 +1,24 @@
-import { useEffect, useRef, useState } from "react";
+import { lazy, Suspense, useEffect, useRef, useState } from "react";
 import { Link } from "@tanstack/react-router";
 import { ArrowUpRight, Plus } from "lucide-react";
 import { portfolio, type Project } from "@/data/portfolio";
-import { gsap, prefersReducedMotion, useReveal } from "@/lib/animations";
+import { gsap, loadScrollTrigger, prefersReducedMotion, useReveal } from "@/lib/animations";
 import { CopyEmail, EdButton, MaskedHeading, SectionLabel } from "@/components/ui/editorial";
-import { ProjectArt } from "@/components/projects/ProjectArt";
 import { cn } from "@/lib/utils";
 import { Button } from "@/components/ui/button";
+import { hasCompletedIntro, introCompleteEvent } from "@/lib/intro";
 
 type SectionHeadingTag = "h1" | "h2";
+
+const loadProjectArt = () => import("@/components/projects/ProjectArt");
+const EmptyProjectArt = ({ className }: { project: Project; className?: string }) => (
+  <div aria-hidden className={className} />
+);
+const LazyProjectArt = lazy(() =>
+  loadProjectArt()
+    .then(({ ProjectArt }) => ({ default: ProjectArt }))
+    .catch(() => ({ default: EmptyProjectArt })),
+);
 
 /* ---------- ABOUT ---------- */
 export function About({ headingAs = "h2" }: { headingAs?: SectionHeadingTag } = {}) {
@@ -69,6 +79,60 @@ export function About({ headingAs = "h2" }: { headingAs?: SectionHeadingTag } = 
 }
 
 /* ---------- WORK ---------- */
+function DeferredProjectArt({ project }: { project: Project }) {
+  const ref = useRef<HTMLDivElement>(null);
+  const [renderArt, setRenderArt] = useState(false);
+
+  useEffect(() => {
+    const target = ref.current;
+    if (!target) return;
+
+    const render = () => setRenderArt(true);
+    const preload = () => {
+      void loadProjectArt().catch(() => {
+        // Decorative artwork is optional; the card remains complete without it.
+      });
+    };
+
+    window.addEventListener("wheel", preload, { passive: true, once: true });
+    window.addEventListener("touchstart", preload, { passive: true, once: true });
+
+    if (!("IntersectionObserver" in window)) {
+      render();
+      return () => {
+        window.removeEventListener("wheel", preload);
+        window.removeEventListener("touchstart", preload);
+      };
+    }
+
+    const observer = new IntersectionObserver(
+      ([entry]) => {
+        if (!entry?.isIntersecting) return;
+        observer.disconnect();
+        render();
+      },
+      { rootMargin: "600px 0px" },
+    );
+    observer.observe(target);
+
+    return () => {
+      observer.disconnect();
+      window.removeEventListener("wheel", preload);
+      window.removeEventListener("touchstart", preload);
+    };
+  }, []);
+
+  return (
+    <div ref={ref} className="h-full">
+      {renderArt && (
+        <Suspense fallback={<div aria-hidden className="h-full w-full" />}>
+          <LazyProjectArt project={project} />
+        </Suspense>
+      )}
+    </div>
+  );
+}
+
 function ProjectCard({
   project,
   index,
@@ -93,7 +157,7 @@ function ProjectCard({
         )}
       >
         <div className="h-full transition-transform duration-700 ease-out group-hover:scale-[1.04]">
-          <ProjectArt project={project} />
+          <DeferredProjectArt project={project} />
         </div>
         <span className="label-mono absolute left-4 top-4 bg-background px-2 py-1">
           № {String(index + 1).padStart(2, "0")}
@@ -272,24 +336,73 @@ export function Experience({ headingAs = "h2" }: { headingAs?: SectionHeadingTag
   const line = useRef<HTMLDivElement>(null);
   useReveal(ref);
   useEffect(() => {
-    if (!line.current || prefersReducedMotion()) return;
-    const t = gsap.fromTo(
-      line.current,
-      { scaleY: 0 },
-      {
-        scaleY: 1,
-        ease: "none",
-        scrollTrigger: {
-          trigger: line.current.parentElement,
-          start: "top 70%",
-          end: "bottom 60%",
-          scrub: true,
+    const root = ref.current;
+    const target = line.current;
+    if (!root || !target || prefersReducedMotion()) return;
+
+    let tween: gsap.core.Tween | undefined;
+    let observer: IntersectionObserver | undefined;
+    let cancelled = false;
+    let loading = false;
+
+    const initialise = () => {
+      if (cancelled || tween || loading) return;
+      loading = true;
+      void loadScrollTrigger()
+        .then(() => {
+          if (cancelled) return;
+          observer?.disconnect();
+          tween = gsap.fromTo(
+            target,
+            { scaleY: 0 },
+            {
+              scaleY: 1,
+              ease: "none",
+              scrollTrigger: {
+                trigger: target.parentElement,
+                start: "top 70%",
+                end: "bottom 60%",
+                scrub: true,
+              },
+            },
+          );
+        })
+        .catch(() => {
+          loading = false;
+        });
+    };
+
+    const initialiseWhenNearby = () => {
+      if (
+        !("IntersectionObserver" in window) ||
+        root.getBoundingClientRect().top <= innerHeight * 2
+      ) {
+        initialise();
+        return;
+      }
+
+      observer = new IntersectionObserver(
+        ([entry]) => {
+          if (entry?.isIntersecting) initialise();
         },
-      },
-    );
+        { rootMargin: "100% 0px" },
+      );
+      observer.observe(root);
+    };
+
+    const waitForHomeIntro = window.location.pathname === "/" && !hasCompletedIntro();
+    if (waitForHomeIntro) {
+      window.addEventListener(introCompleteEvent, initialiseWhenNearby, { once: true });
+    } else {
+      initialiseWhenNearby();
+    }
+
     return () => {
-      t.scrollTrigger?.kill();
-      t.kill();
+      cancelled = true;
+      window.removeEventListener(introCompleteEvent, initialiseWhenNearby);
+      observer?.disconnect();
+      tween?.scrollTrigger?.kill();
+      tween?.kill();
     };
   }, []);
   const { experience } = portfolio;

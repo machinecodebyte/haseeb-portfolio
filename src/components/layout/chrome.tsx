@@ -1,9 +1,9 @@
 import { useEffect, useRef, useState } from "react";
 import { Link, useLocation } from "@tanstack/react-router";
 import { ArrowUp, ArrowUpRight, Menu, X } from "lucide-react";
-import Lenis from "lenis";
+import type Lenis from "lenis";
 import { portfolio } from "@/data/portfolio";
-import { gsap, ScrollTrigger, prefersReducedMotion } from "@/lib/animations";
+import { gsap, loadScrollTrigger, prefersReducedMotion } from "@/lib/animations";
 import {
   completeIntro,
   hasCompletedIntro,
@@ -19,36 +19,78 @@ export function SmoothScroll({
 }: {
   lockUntilIntroComplete?: boolean;
 }) {
+  const [ready, setReady] = useState(
+    () => !lockUntilIntroComplete || !portfolio.settings.showPreloader || hasCompletedIntro(),
+  );
+
   useEffect(() => {
-    if (prefersReducedMotion()) return;
-    const lenis = new Lenis({ lerp: 0.1 });
-    (window as unknown as { __lenis?: Lenis }).__lenis = lenis;
-    lenis.on("scroll", ScrollTrigger.update);
-    const resume = () => {
-      lenis.start();
-      gsap.ticker.lagSmoothing(0);
-    };
-    const isIntroActive =
-      lockUntilIntroComplete &&
-      portfolio.settings.showPreloader &&
-      !hasStartedIntro() &&
-      !hasCompletedIntro();
-    if (isIntroActive) {
-      gsap.ticker.lagSmoothing(500, 33);
-      lenis.stop();
-      window.addEventListener(introCompleteEvent, resume, { once: true });
-    } else {
-      gsap.ticker.lagSmoothing(0);
+    if (!lockUntilIntroComplete || !portfolio.settings.showPreloader || hasCompletedIntro()) {
+      setReady(true);
+      return;
     }
-    const tick = (t: number) => lenis.raf(t * 1000);
-    gsap.ticker.add(tick);
-    return () => {
-      window.removeEventListener(introCompleteEvent, resume);
-      if (isIntroActive && !hasCompletedIntro()) gsap.ticker.lagSmoothing(0);
-      gsap.ticker.remove(tick);
-      lenis.destroy();
-    };
+
+    const resume = () => setReady(true);
+    window.addEventListener(introCompleteEvent, resume, { once: true });
+    return () => window.removeEventListener(introCompleteEvent, resume);
   }, [lockUntilIntroComplete]);
+
+  useEffect(() => {
+    if (!ready || prefersReducedMotion()) return;
+
+    let lenis: Lenis | undefined;
+    let tick: ((time: number) => void) | undefined;
+    let cancelled = false;
+    let started = false;
+
+    const removeIntentListeners = () => {
+      window.removeEventListener("wheel", start);
+      window.removeEventListener("touchstart", start);
+      window.removeEventListener("scroll", start);
+      window.removeEventListener("keydown", onKeyDown);
+    };
+
+    const initialise = async () => {
+      try {
+        const [{ default: LenisConstructor }, ScrollTrigger] = await Promise.all([
+          import("lenis"),
+          loadScrollTrigger(),
+        ]);
+        if (cancelled) return;
+
+        lenis = new LenisConstructor({ lerp: 0.1 });
+        (window as unknown as { __lenis?: Lenis }).__lenis = lenis;
+        lenis.on("scroll", ScrollTrigger.update);
+        gsap.ticker.lagSmoothing(0);
+        tick = (time) => lenis?.raf(time * 1000);
+        gsap.ticker.add(tick);
+      } catch {
+        // Native scrolling remains available if an optional enhancement cannot load.
+      }
+    };
+
+    const start = () => {
+      if (started) return;
+      started = true;
+      removeIntentListeners();
+      void initialise();
+    };
+
+    const onKeyDown = (event: KeyboardEvent) => {
+      if ([" ", "ArrowDown", "End", "PageDown"].includes(event.key)) start();
+    };
+
+    window.addEventListener("wheel", start, { passive: true });
+    window.addEventListener("touchstart", start, { passive: true });
+    window.addEventListener("scroll", start, { passive: true });
+    window.addEventListener("keydown", onKeyDown);
+
+    return () => {
+      cancelled = true;
+      removeIntentListeners();
+      if (tick) gsap.ticker.remove(tick);
+      lenis?.destroy();
+    };
+  }, [ready]);
   return null;
 }
 
@@ -121,7 +163,6 @@ export function Preloader() {
           "intro+=0.9",
         )
         .to(".pl-ed", { autoAlpha: 1, y: 0, duration: 0.3 }, "intro+=1.15")
-        .to({}, { duration: 0.55 })
         .to(overlay, { yPercent: -100, duration: 0.8, ease: "power4.inOut" });
 
       frame = window.requestAnimationFrame(() => {
