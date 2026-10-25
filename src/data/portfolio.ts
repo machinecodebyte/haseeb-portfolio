@@ -168,7 +168,7 @@ export const portfolio = {
     edition: "EDITION 001",
     year: "2026",
     title: "The Engineer's Edition",
-    url: "", // set when published, e.g. https://haseebahmed.dev
+    url: "https://haseeb-portfolio-gules.vercel.app/", // set when published, e.g. https://haseebahmed.dev
   },
   seo: {
     title: "Haseeb Ahmed — Full-Stack Software Engineer | The Engineer's Edition",
