@@ -13,7 +13,7 @@ export function MaskedHeading({
   as?: "h1" | "h2" | "h3";
 }) {
   return (
-    <Tag data-mask className={cn("font-display", className)}>
+    <Tag data-mask className={cn("font-display min-w-0 max-w-full", className)}>
       {lines.map((l) => (
         <span key={l} className="line-mask">
           <span className="block">{l}</span>

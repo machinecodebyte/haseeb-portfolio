@@ -123,8 +123,13 @@
 @utility line-mask {
   overflow: hidden;
   display: block;
+  min-width: 0;
+  max-width: 100%;
   padding-bottom: 0.08em;
   margin-bottom: -0.04em;
+}
+.line-mask > span {
+  overflow-wrap: anywhere;
 }
 
 @keyframes marquee {
@@ -149,6 +154,19 @@
 }
 @utility animate-pulse-dot {
   animation: pulse-dot 1.6s ease-in-out infinite;
+}
+@keyframes welcome-dialog-in {
+  from {
+    opacity: 0;
+    transform: translateY(0.75rem) scale(0.98);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0) scale(1);
+  }
+}
+@utility animate-welcome-dialog-in {
+  animation: welcome-dialog-in 260ms ease-out both;
 }
 
 @media (prefers-reduced-motion: reduce) {

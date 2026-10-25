@@ -11,6 +11,8 @@ import { type ReactNode } from "react";
 
 import appCss from "../styles.css?url";
 import bowlbyOneFont from "@/assets/fonts/bowlby-one-latin.woff2?url";
+import { FloatingSocialLinks } from "@/components/layout/floating-social-links";
+import { WelcomeDialog } from "@/components/layout/welcome-dialog";
 import { portfolio } from "@/data/portfolio";
 
 // Vercel Analytics
@@ -120,6 +122,11 @@ function RootShell({ children }: { children: ReactNode }) {
 }
 
 function RootComponent() {
-  /* Required: nested routes render here. Removing <Outlet /> breaks all child routes. */
-  return <Outlet />;
+  return (
+    <>
+      <Outlet />
+      <FloatingSocialLinks />
+      <WelcomeDialog />
+    </>
+  );
 }

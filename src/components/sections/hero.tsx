@@ -263,9 +263,9 @@ export function Hero() {
           </span>
         </div>
 
-        <div className="mt-10 grid gap-10 lg:grid-cols-12">
-          <div className="lg:col-span-8">
-            <h1 className="font-display text-[clamp(2.8rem,7vw,7.4rem)]">
+        <div className="mt-10 grid grid-cols-1 gap-10 lg:grid-cols-12">
+          <div className="min-w-0 lg:col-span-8">
+            <h1 className="font-display text-[clamp(2.15rem,7vw,7.4rem)]">
               {hero.headline.map((w) => (
                 <span key={w} className="h-line line-mask">
                   <span className={cn("block", w === hero.accentWord && "text-primary")}>{w}</span>
@@ -281,7 +281,7 @@ export function Hero() {
           </div>
 
           <aside
-            className="h-panel self-end border bg-card lg:col-span-4"
+            className="h-panel min-w-0 self-end border bg-card lg:col-span-4"
             aria-label="Profile summary"
           >
             <div className="flex items-center justify-between border-b px-5 py-3">
@@ -324,7 +324,7 @@ export function Hero() {
           </aside>
         </div>
 
-        <div className="mt-12 grid gap-8 border-t pt-8 lg:grid-cols-12">
+        <div className="mt-12 grid grid-cols-1 gap-8 border-t pt-8 lg:grid-cols-12">
           <p className="h-meta max-w-xl text-lg leading-relaxed lg:col-span-6">{hero.intro}</p>
           <p className="h-meta font-marker text-2xl text-primary -rotate-2 lg:col-span-3">
             {hero.annotation}

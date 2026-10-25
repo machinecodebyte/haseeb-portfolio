@@ -67,6 +67,15 @@ export type Education = {
   focus: string[];
 };
 
+export type SocialLinks = {
+  github?: string;
+  linkedin?: string;
+  /** A confirmed public Instagram profile URL. */
+  instagram?: string;
+  /** A confirmed full WhatsApp deep link, for example https://wa.me/<digits>. */
+  whatsapp?: string;
+};
+
 export type PortfolioRouteKey =
   "home" | "about" | "work" | "experience" | "expertise" | "education" | "credentials" | "contact";
 
@@ -145,6 +154,13 @@ const personal: Project[] = [
   },
 ];
 
+const socialLinks: SocialLinks = {
+  github: "https://github.com/machinecodebyte",
+  linkedin: "https://www.linkedin.com/in/haseeb-ahmed-8166b0157",
+  instagram: "https://www.instagram.com/_ahmedhaseeb_/",
+  whatsapp: "https://wa.me/917355238033",
+};
+
 export const portfolio = {
   site: {
     name: "Haseeb Ahmed",
@@ -221,9 +237,13 @@ export const portfolio = {
     resumeDownloadLabel: "Download Resume",
     availability: { show: true, label: "Open to new opportunities" },
   },
-  socialLinks: {
-    github: "https://github.com/machinecodebyte",
-    linkedin: "https://www.linkedin.com/in/haseeb-ahmed-8166b0157",
+  socialLinks,
+  welcome: {
+    delayMs: 8_000,
+    heading: "Welcome to {name}'s Portfolio",
+    description:
+      "Hi there! I'm {name}, a software engineer passionate about building thoughtful digital experiences. Explore my projects, skills, and journey. Thanks for stopping by!",
+    dismissLabel: "Okay",
   },
   navigation: [
     { label: "About", href: "/about" },

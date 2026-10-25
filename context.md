@@ -74,8 +74,10 @@ All page components read content from `src/data/portfolio.ts`; they do not own e
 | `src/router.tsx`                         | Creates the TanStack Router with the generated route tree and scroll restoration.                                                                                    |
 | `src/routes/index.tsx`                   | Composes the home-page modules.                                                                                                                                    |
 | `src/routes/projects.$slug.tsx`          | Builds the case study, reading loader data; includes scroll progress, architecture, gallery, links, and previous/next case-study navigation.                       |
-| `src/components/layout/chrome.tsx`       | `Preloader`, progressively enhanced `SmoothScroll`, responsive `Nav`, and `Footer`. Lenis and ScrollTrigger load after the intro and first scroll intent; native scrolling remains the fallback. Navigation links to dedicated routes, locks body scroll for its mobile dialog, and supports Escape. |
+| `src/components/layout/chrome.tsx`       | `Preloader`, progressively enhanced `SmoothScroll`, responsive `Nav`, and `Footer`. Lenis and ScrollTrigger load after the intro and first scroll intent; native scrolling remains the fallback. The scrollable, focus-contained mobile dialog shares a reversible scroll lock with other overlays and supports Escape. |
 | `src/components/layout/page-shell.tsx`   | Shared chrome for dedicated pages without repeating the homepage preloader. |
+| `src/components/layout/floating-social-links.tsx` | Optional site-wide Instagram/WhatsApp pills. They render only when the owner has configured verified destinations in `portfolio.socialLinks`, and yield to the footer controls when it is visible. |
+| `src/components/layout/welcome-dialog.tsx` | Root-mounted, client-only welcome dialog. It waits for the home intro, opens after the configured hydration-time delay once per session, and provides focus trapping, Escape dismissal and shared scroll locking. |
 | `src/components/sections/hero.tsx`       | Hero and marquee. Coordinates the preloader event with GSAP hero animation and uses portfolio CTAs/social links.                                                   |
 | `src/components/sections/content.tsx`    | `About`, `Work`, `Experience`, `Toolkit`, `Education`, `Credentials`, and `Contact`. `Work` owns the local All Work/Personal/Company filter state; decorative project art and scroll-triggered motion load only when relevant. |
 | `src/components/projects/ProjectArt.tsx` | Shows an owner-supplied CDN image when available, otherwise renders a clearly labelled decorative preview for a project.                                           |
@@ -97,7 +99,7 @@ Edit `src/data/portfolio.ts` for all owner-managed content. It exports the `Proj
 
 | Desired change                              | Where to edit                                                            |
 | ------------------------------------------- | ------------------------------------------------------------------------ |
-| Name, contact, resume, social URLs          | `portfolio.site`, `portfolio.profile`, `portfolio.socialLinks`           |
+| Name, contact, resume, social URLs, welcome copy | `portfolio.site`, `portfolio.profile`, `portfolio.socialLinks`, `portfolio.welcome` |
 | Titles, descriptions, SEO                   | `portfolio.site`, `portfolio.seo`, and per-project fields                |
 | Navigation and section copy                 | `portfolio.navigation` and the matching section object                   |
 | Personal project                            | `personal` array                                                         |
@@ -120,7 +122,7 @@ The existing Bowlby One/Oswald display and heading fonts, Inter body font, IBM P
 
 GSAP drives the preloader, hero entrance/parallax, masked headings, `[data-reveal]` scroll reveals, timeline line, and mobile-menu links. The ScrollTrigger plugin is code-split and initialized after the intro only for nearby content; `useReveal` scopes GSAP contexts to a component and reverts them at unmount. `SmoothScroll` dynamically connects Lenis to GSAP's ticker after intentional scroll input and destroys it during cleanup. `Magnetic` only enables on fine pointers. CSS supplies the marquee and status-dot animations.
 
-`prefers-reduced-motion` disables GSAP/Lenis setup and CSS marquee/pulse animation. Accessible patterns include semantic sections/headings/lists, labelled primary navigation and mobile dialog, `aria-expanded` filter/toolkit state, keyboard Escape to close the mobile menu, focus-visible outlines, descriptive image alt text, external-link rel protection, and live copy-email feedback. Known limitation: focus is placed in the mobile menu but focus is not fully trapped within it.
+`prefers-reduced-motion` disables GSAP/Lenis setup and CSS marquee/pulse animation. Accessible patterns include semantic sections/headings/lists, labelled primary navigation and mobile dialog, `aria-expanded` filter/toolkit state, keyboard Escape and focus trapping for mobile and welcome dialogs, focus-visible outlines, descriptive image alt text, external-link rel protection, and live copy-email feedback. The welcome dialog is client-only, waits for the preloader on home and shares document scroll locking safely with the mobile menu.
 
 ## 9. Assets, configuration, and security
 
@@ -140,11 +142,12 @@ npm run build
 npm run preview
 ```
 
-`src/test/portfolio.test.ts` verifies unique project IDs, the exact Personal/Company distribution, and verified company URLs. `src/test/app-routing.test.tsx` verifies home, dedicated pages and a case study match real routes. `src/test/setup.ts` loads Testing Library matchers. The generated `src/routeTree.gen.ts` belongs to the router toolchain; do not manually edit it.
+`src/test/portfolio.test.ts` verifies unique project IDs, the exact Personal/Company distribution, and verified company URLs. `src/test/app-routing.test.tsx` verifies home, dedicated pages and a case study match real routes. The layout tests cover optional social links, intro-aware welcome timing, session behavior and dismissal; `src/lib/scroll-lock.test.ts` covers nested overlay locks. `src/test/setup.ts` loads Testing Library matchers. The generated `src/routeTree.gen.ts` belongs to the router toolchain; do not manually edit it.
 
 ## 11. Known limitations
 
 - No production domain or social-preview image is confirmed in source. Canonical URLs, Open Graph URLs and the sitemap activate only after `portfolio.site.url` contains the real deployment origin.
+- No verified Instagram profile or WhatsApp deep link has been supplied. The optional floating CTAs remain hidden until their full URLs are added to `portfolio.socialLinks`; do not derive a WhatsApp link from the listed phone number.
 - Browser-level responsive, animation, live-link, and PDF download checks require a running browser and were not encoded as automated tests.
 - The intentionally retained full-screen intro and GSAP-heavy editorial animation are the remaining largest lab-performance costs, particularly on throttled mobile emulation. They are progressively enhanced rather than removed to preserve the established visual experience.
 - The app intentionally remains TanStack Start rather than Next.js because of the repository platform constraint.

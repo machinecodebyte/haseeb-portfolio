@@ -28,7 +28,7 @@ export function About({ headingAs = "h2" }: { headingAs?: SectionHeadingTag } = 
   return (
     <section ref={ref} id="about" className="container-ed py-28">
       <SectionLabel>{about.label}</SectionLabel>
-      <div className="mt-8 grid gap-14 lg:grid-cols-12">
+      <div className="mt-8 grid grid-cols-1 gap-14 lg:grid-cols-12">
         <div className="lg:col-span-7">
           <MaskedHeading
             as={headingAs}
@@ -54,7 +54,7 @@ export function About({ headingAs = "h2" }: { headingAs?: SectionHeadingTag } = 
           ))}
         </div>
       </div>
-      <dl className="mt-20 grid gap-4 sm:grid-cols-2 lg:grid-cols-4">
+      <dl className="mt-20 grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
         {about.modules.map((m, i) => (
           <div
             data-reveal
@@ -146,7 +146,7 @@ function ProjectCard({
     <article
       data-reveal
       className={cn(
-        "group flex flex-col border bg-card",
+        "group flex min-w-0 flex-col border bg-card",
         large ? "lg:col-span-8" : "lg:col-span-4",
       )}
     >
@@ -260,7 +260,7 @@ export function Work({ headingAs = "h2" }: { headingAs?: SectionHeadingTag } = {
               className="mt-6 text-[clamp(3rem,9vw,8rem)]"
             />
           </div>
-          <div role="tablist" aria-label="Filter work" className="flex border">
+          <div role="tablist" aria-label="Filter work" className="flex max-w-full flex-wrap border">
             {tabs.map((t) => (
               <Button
                 variant="ghost"
@@ -269,7 +269,7 @@ export function Work({ headingAs = "h2" }: { headingAs?: SectionHeadingTag } = {
                 aria-selected={tab === t.id}
                 onClick={() => setTab(t.id as typeof tab)}
                 className={cn(
-                  "label-mono h-auto rounded-none px-3 py-3 transition-colors hover:bg-foreground hover:text-background",
+                  "label-mono h-auto rounded-none px-2.5 py-2.5 transition-colors hover:bg-foreground hover:text-background sm:px-3 sm:py-3",
                   tab === t.id ? "bg-foreground text-background" : "hover:text-primary",
                 )}
               >
@@ -284,7 +284,7 @@ export function Work({ headingAs = "h2" }: { headingAs?: SectionHeadingTag } = {
             <p className="label-mono mb-6 border-b pb-3 text-muted-foreground">
               {work.personalLabel}
             </p>
-            <div className="grid gap-6 lg:grid-cols-12">
+            <div className="grid grid-cols-1 gap-6 lg:grid-cols-12">
               {sorted.map((p, i) => (
                 <ProjectCard key={p.id} project={p} index={i} large={i % 3 === 0} />
               ))}
@@ -297,7 +297,7 @@ export function Work({ headingAs = "h2" }: { headingAs?: SectionHeadingTag } = {
         <div className="mt-24 bg-ink py-20 text-ink-foreground">
           <div className="container-ed">
             <SectionLabel tone="inverse">{work.companyLabel}</SectionLabel>
-            <div className="mt-6 grid gap-8 lg:grid-cols-12">
+            <div className="mt-6 grid grid-cols-1 gap-8 lg:grid-cols-12">
               <MaskedHeading
                 lines={work.companyHeading}
                 className="text-[clamp(2.4rem,5.5vw,5rem)] lg:col-span-8"
@@ -307,7 +307,7 @@ export function Work({ headingAs = "h2" }: { headingAs?: SectionHeadingTag } = {
               </p>
             </div>
             {projects.company.length > 0 ? (
-              <div className="mt-14 grid gap-6 text-foreground lg:grid-cols-12">
+              <div className="mt-14 grid grid-cols-1 gap-6 text-foreground lg:grid-cols-12">
                 {projects.company.map((p, i) => (
                   <ProjectCard key={p.id} project={p} index={i} />
                 ))}
@@ -408,14 +408,14 @@ export function Experience({ headingAs = "h2" }: { headingAs?: SectionHeadingTag
   const { experience } = portfolio;
   return (
     <section ref={ref} id="experience" className="border-t bg-card py-28">
-      <div className="container-ed grid gap-14 lg:grid-cols-12">
+      <div className="container-ed grid grid-cols-1 gap-14 lg:grid-cols-12">
         <div className="min-w-0 lg:col-span-5">
           <div className="lg:sticky lg:top-32">
             <SectionLabel>{experience.label}</SectionLabel>
             <MaskedHeading
               as={headingAs}
               lines={experience.heading.flatMap((line) => line.split(" "))}
-              className="experience-heading mt-6 text-[2rem] leading-none tracking-normal sm:text-5xl md:text-6xl lg:text-[2.5rem] xl:text-[3.5rem] 2xl:text-[4rem] [&_.line-mask]:whitespace-nowrap [&_.line-mask]:pb-[0.14em]"
+              className="experience-heading mt-6 min-w-0 break-words text-[clamp(1.85rem,9vw,2.5rem)] leading-none tracking-normal sm:text-5xl md:text-6xl lg:text-[2.5rem] xl:text-[3.5rem] 2xl:text-[4rem] [&_.line-mask]:pb-[0.14em]"
             />
             {experience.items.map((e) => (
               <p data-reveal key={e.company} className="label-mono mt-8 text-muted-foreground">
@@ -432,31 +432,36 @@ export function Experience({ headingAs = "h2" }: { headingAs?: SectionHeadingTag
             ref={line}
             className="absolute left-[11px] top-0 h-full w-px origin-top bg-primary"
           />
-          <ol className="space-y-20">
+          <ol className="min-w-0 space-y-20">
             {experience.items
               .flatMap((e) => e.roles.map((r) => ({ ...r, company: e.company })))
               .map((r, i) => (
-                <li data-reveal key={r.title} className="relative pl-12">
+                <li data-reveal key={r.title} className="relative min-w-0 pl-10 sm:pl-12">
                   <span className="absolute left-0 top-2 grid size-6 place-items-center border-2 border-primary bg-background font-mono text-[10px]">
                     {i + 1}
                   </span>
-                  <div className="font-display text-6xl text-foreground/15 md:text-8xl">
+                  <div className="font-display text-5xl text-foreground/15 sm:text-6xl md:text-8xl">
                     {r.start.split(" ")[1]}
                   </div>
                   {r.promotion && (
-                    <p className="label-mono mt-2 inline-flex items-center gap-2 bg-primary px-2 py-1 text-primary-foreground">
+                    <p className="label-mono mt-2 inline-flex max-w-full flex-wrap items-center gap-x-2 gap-y-1 bg-primary px-2 py-1 text-primary-foreground">
                       <span className="animate-bounce">↑</span> Promotion — engineering continued
                     </p>
                   )}
-                  <h3 className="mt-3 font-heading text-3xl uppercase md:text-4xl">{r.title}</h3>
+                  <h3 className="mt-3 break-words font-heading text-3xl uppercase md:text-4xl">
+                    {r.title}
+                  </h3>
                   <p className="label-mono mt-2 text-muted-foreground">
                     {r.company} · {r.start} — {r.end}
                   </p>
                   <ul className="mt-6 space-y-3">
                     {r.responsibilities.map((x) => (
-                      <li key={x} className="flex gap-4 border-b pb-3 text-muted-foreground">
-                        <span className="text-primary">—</span>
-                        {x}
+                      <li
+                        key={x}
+                        className="flex min-w-0 gap-3 border-b pb-3 text-muted-foreground sm:gap-4"
+                      >
+                        <span className="shrink-0 text-primary">—</span>
+                        <span className="min-w-0">{x}</span>
                       </li>
                     ))}
                   </ul>
@@ -576,7 +581,7 @@ export function Toolkit({ headingAs = "h2" }: { headingAs?: SectionHeadingTag } 
           lines={skills.heading}
           className="mt-6 text-[clamp(2.6rem,6vw,5.5rem)]"
         />
-        <div className="mt-14 grid gap-4 lg:grid-cols-12">
+        <div className="mt-14 grid grid-cols-1 gap-4 lg:grid-cols-12">
           {skills.groups.map((g, i) => {
             const isOpen = open === g.id;
             const dark = i === 0 || i === 6;
@@ -648,7 +653,7 @@ export function Education({ headingAs = "h2" }: { headingAs?: SectionHeadingTag 
           lines={education.heading}
           className="mt-6 text-[clamp(2.4rem,5.5vw,5rem)]"
         />
-        <div className="mt-14 grid gap-px bg-forest-foreground/20 md:grid-cols-2">
+        <div className="mt-14 grid grid-cols-1 gap-px bg-forest-foreground/20 md:grid-cols-2">
           {education.items.map((e) => (
             <article data-reveal key={e.institution} className="bg-forest p-8">
               <div className="flex items-center justify-between">
@@ -704,7 +709,7 @@ export function Credentials({ headingAs = "h2" }: { headingAs?: SectionHeadingTa
           className="mt-6 text-[clamp(2.4rem,5.5vw,5rem)]"
         />
         {certifications.items.length ? (
-          <div className="mt-14 grid gap-6 md:grid-cols-2 lg:grid-cols-3">
+          <div className="mt-14 grid grid-cols-1 gap-6 md:grid-cols-2 lg:grid-cols-3">
             {certifications.items.map((c) => (
               <article data-reveal key={c.id} className="border bg-card">
                 {c.image && (
@@ -746,7 +751,10 @@ export function Credentials({ headingAs = "h2" }: { headingAs?: SectionHeadingTa
             ))}
           </div>
         ) : (
-          <div data-reveal className="mt-14 grid gap-6 border border-dashed p-10 md:grid-cols-3">
+          <div
+            data-reveal
+            className="mt-14 grid grid-cols-1 gap-6 border border-dashed p-10 md:grid-cols-3"
+          >
             <p className="font-heading text-2xl uppercase md:col-span-2">{certifications.empty}</p>
             <div className="flex gap-2 md:justify-end">
               {[0, 1, 2].map((i) => (
@@ -778,7 +786,7 @@ export function Contact({ headingAs = "h2" }: { headingAs?: SectionHeadingTag } 
           lines={contact.heading}
           className="mt-6 text-[clamp(3rem,10vw,9.5rem)]"
         />
-        <div className="mt-14 grid gap-10 border-t border-primary-foreground/30 pt-10 lg:grid-cols-12">
+        <div className="mt-14 grid grid-cols-1 gap-10 border-t border-primary-foreground/30 pt-10 lg:grid-cols-12">
           <p data-reveal className="text-xl lg:col-span-5">
             {contact.copy}
           </p>

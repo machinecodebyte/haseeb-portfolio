@@ -13,6 +13,7 @@ import {
   startIntro,
 } from "@/lib/intro";
 import { cn } from "@/lib/utils";
+import { isDocumentScrollLocked, lockDocumentScroll } from "@/lib/scroll-lock";
 
 export function SmoothScroll({
   lockUntilIntroComplete = false,
@@ -59,6 +60,7 @@ export function SmoothScroll({
 
         lenis = new LenisConstructor({ lerp: 0.1 });
         (window as unknown as { __lenis?: Lenis }).__lenis = lenis;
+        if (isDocumentScrollLocked()) lenis.stop();
         lenis.on("scroll", ScrollTrigger.update);
         gsap.ticker.lagSmoothing(0);
         tick = (time) => lenis?.raf(time * 1000);
@@ -89,6 +91,8 @@ export function SmoothScroll({
       removeIntentListeners();
       if (tick) gsap.ticker.remove(tick);
       lenis?.destroy();
+      const scrollWindow = window as unknown as { __lenis?: Lenis };
+      if (scrollWindow.__lenis === lenis) delete scrollWindow.__lenis;
     };
   }, [ready]);
   return null;
@@ -123,14 +127,7 @@ export function Preloader() {
       return;
     }
 
-    const previousHtmlOverflow = document.documentElement.style.overflow;
-    const previousBodyOverflow = document.body.style.overflow;
-    const restoreScroll = () => {
-      document.documentElement.style.overflow = previousHtmlOverflow;
-      document.body.style.overflow = previousBodyOverflow;
-    };
-    document.documentElement.style.overflow = "hidden";
-    document.body.style.overflow = "hidden";
+    const releaseScroll = lockDocumentScroll();
 
     let completed = false;
     let frame = 0;
@@ -139,7 +136,7 @@ export function Preloader() {
         paused: true,
         onComplete: () => {
           completed = true;
-          restoreScroll();
+          releaseScroll();
           finish();
         },
       });
@@ -176,7 +173,7 @@ export function Preloader() {
     return () => {
       window.cancelAnimationFrame(frame);
       ctx.revert();
-      if (!completed) restoreScroll();
+      if (!completed) releaseScroll();
     };
   }, []);
   if (done) return null;
@@ -239,6 +236,8 @@ export function Nav() {
   const [compact, setCompact] = useState(false);
   const [open, setOpen] = useState(false);
   const menuRef = useRef<HTMLDivElement>(null);
+  const menuButtonRef = useRef<HTMLButtonElement>(null);
+  const restoreMenuFocus = useRef(false);
   const { pathname } = useLocation();
   const activePath = pathname.startsWith("/projects/") ? "/work" : pathname;
 
@@ -258,10 +257,39 @@ export function Nav() {
 
   useEffect(() => {
     if (!open) return;
-    document.documentElement.style.overflow = "hidden";
-    const key = (e: KeyboardEvent) => e.key === "Escape" && setOpen(false);
+    const releaseScroll = lockDocumentScroll();
+    const menuButton = menuButtonRef.current;
+    const focusFrame = window.requestAnimationFrame(() => {
+      menuRef.current?.querySelector<HTMLElement>("a")?.focus({ preventScroll: true });
+    });
+    const key = (event: KeyboardEvent) => {
+      if (event.key === "Escape") {
+        event.preventDefault();
+        restoreMenuFocus.current = true;
+        setOpen(false);
+        return;
+      }
+
+      if (event.key !== "Tab") return;
+      const focusable = Array.from(
+        menuRef.current?.querySelectorAll<HTMLElement>(
+          'a[href], button:not([disabled]), [tabindex]:not([tabindex="-1"])',
+        ) ?? [],
+      );
+      if (focusable.length === 0) return;
+
+      const first = focusable[0]!;
+      const last = focusable.at(-1)!;
+      const active = document.activeElement;
+      if (event.shiftKey && (active === first || !menuRef.current?.contains(active))) {
+        event.preventDefault();
+        last.focus();
+      } else if (!event.shiftKey && (active === last || !menuRef.current?.contains(active))) {
+        event.preventDefault();
+        first.focus();
+      }
+    };
     window.addEventListener("keydown", key);
-    menuRef.current?.querySelector("a")?.focus();
     if (!prefersReducedMotion())
       gsap.from(".m-link", {
         yPercent: 100,
@@ -271,8 +299,13 @@ export function Nav() {
         ease: "power3.out",
       });
     return () => {
-      document.documentElement.style.overflow = "";
+      window.cancelAnimationFrame(focusFrame);
+      releaseScroll();
       window.removeEventListener("keydown", key);
+      if (restoreMenuFocus.current) {
+        restoreMenuFocus.current = false;
+        window.requestAnimationFrame(() => menuButton?.focus({ preventScroll: true }));
+      }
     };
   }, [open]);
 
@@ -345,9 +378,12 @@ export function Nav() {
               Let's talk
             </Link>
             <button
+              ref={menuButtonRef}
+              type="button"
               className="xl:hidden"
               aria-label="Open menu"
               aria-expanded={open}
+              aria-controls="mobile-navigation"
               onClick={() => setOpen(true)}
             >
               <Menu />
@@ -358,35 +394,48 @@ export function Nav() {
       {open && (
         <div
           ref={menuRef}
+          id="mobile-navigation"
           role="dialog"
           aria-modal="true"
           aria-label="Menu"
-          className="fixed inset-0 z-[60] flex flex-col bg-ink p-6 text-ink-foreground"
+          data-lenis-prevent
+          className="fixed inset-0 z-[60] flex max-h-dvh min-h-0 flex-col overflow-y-auto overscroll-contain bg-ink px-5 pb-[max(1.25rem,env(safe-area-inset-bottom))] pt-[max(1.25rem,env(safe-area-inset-top))] text-ink-foreground sm:p-6"
         >
-          <div className="flex items-center justify-between">
+          <div className="flex shrink-0 items-center justify-between">
             <span className="font-display text-2xl">
               HA<span className="text-primary">.</span>
             </span>
-            <button aria-label="Close menu" onClick={() => setOpen(false)}>
+            <button
+              type="button"
+              aria-label="Close menu"
+              onClick={() => {
+                restoreMenuFocus.current = true;
+                setOpen(false);
+              }}
+            >
               <X />
             </button>
           </div>
-          <ul className="mt-12 space-y-2">
+          <ul className="mt-8 min-w-0 space-y-2 pb-8 sm:mt-12">
             {portfolio.navigation.map((n, i) => (
-              <li key={n.href} className="overflow-hidden">
+              <li key={n.href} className="min-w-0 overflow-hidden">
                 <Link
                   onClick={() => setOpen(false)}
                   to={n.href}
                   preload={false}
-                  className="m-link flex items-baseline gap-4 font-display text-5xl hover:text-primary"
+                  className="m-link flex min-w-0 items-baseline gap-2 font-display text-[clamp(2rem,9vw,3rem)] leading-[0.95] hover:text-primary sm:gap-4 sm:text-5xl"
                 >
-                  <span className="label-mono text-ink-foreground/50">0{i + 1}</span>
-                  {n.label}
+                  <span className="label-mono shrink-0 text-[0.55em] text-ink-foreground/50">
+                    0{i + 1}
+                  </span>
+                  <span className="min-w-0 break-words">{n.label}</span>
                 </Link>
               </li>
             ))}
           </ul>
-          <div className="label-mono mt-auto text-ink-foreground/60">{portfolio.profile.email}</div>
+          <div className="label-mono mt-auto break-all text-ink-foreground/60">
+            {portfolio.profile.email}
+          </div>
         </div>
       )}
     </>
@@ -410,7 +459,7 @@ export function Footer() {
         </div>
 
         <div className="relative border-t border-ink-foreground/20 pt-7 sm:pt-9">
-          <div className="grid gap-12 lg:grid-cols-[minmax(0,0.9fr)_minmax(20rem,1.1fr)] lg:gap-20">
+          <div className="grid grid-cols-1 gap-12 lg:grid-cols-[minmax(0,0.9fr)_minmax(20rem,1.1fr)] lg:gap-20">
             <div className="flex min-h-full flex-col justify-between gap-10">
               <div>
                 <div className="font-display text-[clamp(7.25rem,18vw,16rem)] leading-[0.72] tracking-[-0.06em]">
