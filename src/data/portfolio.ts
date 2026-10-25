@@ -27,6 +27,13 @@ export type Project = {
   features?: string[];
   challenges?: string[];
   results?: string[];
+  caseStudySections?: {
+    title: string;
+    intro?: string;
+    paragraphs?: string[];
+    items?: { title: string; description: string }[];
+  }[];
+  sourceLinks?: { label: string; url: string }[];
   technologies: string[];
   coverImage?: string;
   gallery?: string[];
@@ -96,33 +103,85 @@ const personal: Project[] = [
     description:
       "A full-stack inventory and sales management platform that combines operational workflows with forecasting and analytical insights.",
     overview:
-      "INVORA brings products, stock, sales and forecasting into one workspace. A Next.js frontend talks to FastAPI services, while background workers handle heavier jobs such as forecasting and reports.",
+      "INVORA brings products, stock, sales history and demand forecasting into one workspace. It connects day-to-day inventory operations with a clearer view of what may need replenishing next.",
+    problem:
+      "Inventory decisions depend on more than a current stock count. Product records, stock movements and sales history must be considered together before a business can anticipate demand and decide what to reorder.",
+    solution:
+      "A Next.js interface brings these workflows together against a FastAPI backend. Sales data feeds forecast runs, and the resulting demand estimates inform reorder recommendations alongside current stock and safety-stock settings.",
     architecture: [
-      { layer: "Client", items: ["Next.js", "Vercel"] },
-      { layer: "API", items: ["FastAPI", "CORS", "Health & readiness checks"] },
-      { layer: "Data", items: ["Prisma", "Database"] },
-      { layer: "Workers", items: ["Redis", "RQ", "Render"] },
+      { layer: "Interface", items: ["Next.js", "API client", "React Query"] },
+      { layer: "Application", items: ["FastAPI", "Authentication", "Domain modules"] },
+      { layer: "Processing", items: ["Redis", "RQ workers", "Forecasting"] },
+      { layer: "Persistence", items: ["PostgreSQL", "SQLAlchemy", "Forecast results"] },
     ],
     features: [
-      "Product management",
-      "Inventory management",
-      "Sales transactions",
-      "Sales forecasting",
-      "Reorder recommendations",
-      "Analytics",
-      "Reports",
-      "Background jobs",
-      "System settings",
+      "Product catalog and stock movements",
+      "Sales transactions and CSV imports",
+      "Dashboard analytics and reports",
+      "Demand forecasts and reorder recommendations",
     ],
     contributions: [
       "Connected the Next.js frontend with FastAPI APIs.",
       "Integrated ML forecasting into the sales workflow.",
-      "Used Prisma along with Redis/RQ worker flows for background jobs.",
-      "Configured CORS plus health and readiness checks.",
-      "Worked with Vercel and Render in the production setup.",
     ],
-    technologies: ["Next.js", "FastAPI", "Prisma", "Redis", "RQ", "Vercel", "Render"],
+    caseStudySections: [
+      {
+        title: "From inventory records to action",
+        intro:
+          "The product connects operational data with the steps needed to review demand and decide what to replenish.",
+        items: [
+          {
+            title: "Products and stock",
+            description:
+              "Product records and inventory movements provide the catalog and current stock context for later analysis.",
+          },
+          {
+            title: "Sales history",
+            description:
+              "Sales transactions and validated CSV imports bring historical demand into the system for review and forecasting.",
+          },
+          {
+            title: "Forecast and review",
+            description:
+              "Forecast runs produce stored results, with model evaluation metrics available when the data supports them. Dashboard views and reports make the results easier to inspect.",
+          },
+          {
+            title: "Replenishment",
+            description:
+              "The reorder policy compares predicted demand and safety stock with current inventory to identify a positive stock gap.",
+          },
+        ],
+      },
+      {
+        title: "Inside the forecasting workflow",
+        paragraphs: [
+          "The backend constructs lag and rolling-history features and uses a scikit-learn Random Forest regressor when enough history is available. Sparse histories follow a recent-average fallback; the implementation does not establish a general accuracy claim.",
+          "Forecast work can be queued through Redis and RQ rather than holding a request open. The application records job state and persists forecast outputs with its SQLAlchemy-backed PostgreSQL data layer.",
+        ],
+      },
+      {
+        title: "Application boundaries",
+        paragraphs: [
+          "The frontend calls versioned backend modules for authentication, products, inventory, sales, forecasts, recommendations, reports and settings. The API client keeps access tokens in memory and uses a refresh-cookie flow to renew sessions.",
+          "These details describe the implementation in the supplied repositories; they are not a claim about production capacity or measured business impact.",
+        ],
+      },
+    ],
+    technologies: [
+      "Next.js",
+      "FastAPI",
+      "Python",
+      "PostgreSQL",
+      "SQLAlchemy",
+      "Redis",
+      "RQ",
+      "scikit-learn",
+    ],
     liveUrl: "https://invora-web.vercel.app/",
+    sourceLinks: [
+      { label: "Frontend GitHub", url: "https://github.com/machinecodebyte/invora-web" },
+      { label: "Backend GitHub", url: "https://github.com/machinecodebyte/invora-api" },
+    ],
     caseStudyEnabled: true,
     status: "Live",
     theme: "ink",
@@ -137,19 +196,74 @@ const personal: Project[] = [
     description:
       "A developer productivity application for storing, organizing, and reusing code snippets and text notes.",
     overview:
-      "PasteHub gives developers one organised place for the snippets and notes they reach for every day — with highlighting, one-click copying and reusable templates.",
-    features: [
-      "Syntax highlighting",
-      "Clipboard copying",
-      "Dynamic routing",
-      "Reusable templates",
-      "Organized snippet management",
-      "Responsive interface",
-      "Developer workflow improvements",
+      "PasteHub is a developer-focused paste and snippet platform with separate frontend and backend applications. Its documented workflows bring code editing, organisation, sharing and reuse into one place.",
+    problem:
+      "Useful snippets and notes can become difficult to find and reuse when they are scattered across files, conversations and tools. Developers need an organised way to create, retrieve and share that material.",
+    solution:
+      "The documented application combines an editor and workspace-oriented interface with a modular API for managing pastes, access, history and related developer workflows.",
+    architecture: [
+      { layer: "Browser", items: ["React 19", "React Router", "Monaco Editor"] },
+      { layer: "Client services", items: ["API client", "React Query", "Zustand"] },
+      { layer: "Application", items: ["Express", "Validation", "Auth & services"] },
+      { layer: "Data & events", items: ["Prisma / PostgreSQL", "Redis", "Socket.IO"] },
     ],
-    technologies: ["React.js", "JavaScript", "Tailwind CSS"],
+    features: [
+      "Paste creation, editing and syntax highlighting",
+      "Workspaces, folders, tags and search",
+      "Sharing, access controls and version history",
+      "Templates, import and export",
+    ],
+    caseStudySections: [
+      {
+        title: "A workspace for reusable material",
+        intro:
+          "The supplied frontend and backend audits describe a broad set of developer workflows across the two applications.",
+        items: [
+          {
+            title: "Create and organise",
+            description:
+              "The frontend uses Monaco for code editing, while paste, workspace, folder, tag and search modules organise material for retrieval.",
+          },
+          {
+            title: "Share and revisit",
+            description:
+              "Documented access controls, sharing and version-history flows support working with saved content beyond its first edit.",
+          },
+          {
+            title: "Extend the workflow",
+            description:
+              "Templates, import and export, analytics, notifications and AI assistance are represented in the supplied implementation audits; live integrations were not verified.",
+          },
+        ],
+      },
+      {
+        title: "Frontend to backend",
+        paragraphs: [
+          "React Router organises the interface; TanStack React Query and Zustand handle server and client state. React Hook Form and Zod support form handling and validation, while a shared service layer sends browser requests to the API.",
+          "The Express application separates request validation, authentication and authorization from its services and repositories. Prisma connects the data layer to PostgreSQL; Redis and Socket.IO support documented cache and realtime boundaries.",
+        ],
+      },
+      {
+        title: "Security and current status",
+        paragraphs: [
+          "The audits describe Argon2id password hashing, access tokens and hashed refresh tokens. On the frontend, the API client includes credentials, keeps the access token in memory and retries token refresh; user changes clear the query cache.",
+          "The supplied audits do not verify a running deployment, live database, Redis, realtime connections or external providers. Billing is documented as mock-only, and the browser CLI approval screen is absent, so those flows are not presented as production-ready.",
+        ],
+      },
+    ],
+    technologies: [
+      "React 19",
+      "Vite",
+      "TypeScript",
+      "Express",
+      "PostgreSQL",
+      "Prisma",
+      "Redis",
+      "Socket.IO",
+    ],
     // liveUrl / githubUrl: not supplied yet — buttons stay hidden until added
     caseStudyEnabled: true,
+    status: "Implementation documented; live operation unverified",
     theme: "forest",
   },
 ];
@@ -315,9 +429,49 @@ export const portfolio = {
         company: "Linkup Group Pvt Ltd",
         description:
           "A construction services web experience showcasing residential and commercial construction, renovation solutions, architecture services, pricing plans, and customer enquiry features.",
+        overview:
+          "Nawab Construction presents a construction-services business to prospective customers, bringing its residential, commercial, renovation and design offerings into a single public website.",
+        problem:
+          "People considering a construction project need to understand the available services and find a straightforward way to begin an enquiry.",
+        solution:
+          "The website introduces the business and its services, then directs visitors toward a quote request or direct contact for an estimate.",
+        features: [
+          "Residential and commercial construction services",
+          "Renovation, architecture and design information",
+          "Pricing plans and plot-area estimate interface",
+          "Quote and direct-contact routes",
+        ],
+        caseStudySections: [
+          {
+            title: "A construction enquiry journey",
+            items: [
+              {
+                title: "Discover the offering",
+                description:
+                  "The site presents construction, renovation, architecture and design services so visitors can identify the work relevant to their project.",
+              },
+              {
+                title: "Explore the project scope",
+                description:
+                  "Service information includes planning and design alongside construction. A pricing section presents multiple plans and a plot-area estimate interface for comparing a project with a selected plan.",
+              },
+              {
+                title: "Ask for an estimate",
+                description:
+                  "The site's FAQ describes a quote form, phone and WhatsApp as ways for prospective customers to start an enquiry.",
+              },
+            ],
+          },
+          {
+            title: "Professional context",
+            paragraphs: [
+              "This project is included in the portfolio's Linkup Group company work. The available information identifies the delivered website but does not establish a project-specific individual role or implementation stack.",
+            ],
+          },
+        ],
         liveUrl: "https://www.nawabconstruction.com/",
         technologies: [],
-        caseStudyEnabled: false,
+        caseStudyEnabled: true,
         theme: "ink",
       },
       {
@@ -330,9 +484,49 @@ export const portfolio = {
         company: "Linkup Group Pvt Ltd",
         description:
           "A modern digital agency website presenting branding, digital marketing, web solutions, agency expertise, and selected client work through an engaging interactive experience.",
+        overview:
+          "LinkUp Social presents a digital agency through its services, company story and selected work, with a clear route for prospective clients to make contact.",
+        problem:
+          "A multidisciplinary agency needs to communicate its identity and range of services while helping visitors discover relevant work and start a conversation.",
+        solution:
+          "The site combines an expressive agency introduction with service messaging, client stories, project showcases and enquiry links.",
+        features: [
+          "Digital agency and service presentation",
+          "Client logos and selected work",
+          "Founder and company story",
+          "Contact and quote pathways",
+        ],
+        caseStudySections: [
+          {
+            title: "How the experience is organised",
+            items: [
+              {
+                title: "Identity first",
+                description:
+                  "The homepage opens with a strong agency statement and illustrations of familiar social and digital platforms, introducing its focus through visual cues.",
+              },
+              {
+                title: "Services and people",
+                description:
+                  "Repeated service labels, a founder introduction and links to the team and services sections give visitors multiple ways to understand the agency.",
+              },
+              {
+                title: "Work and conversation",
+                description:
+                  "A client-logo strip, client stories and selected projects lead into a work showcase, while quote and contact links offer a next step.",
+              },
+            ],
+          },
+          {
+            title: "Professional context",
+            paragraphs: [
+              "The site is part of the portfolio's Linkup Group company work. The available evidence supports the visible experience, but not a specific individual contribution, underlying stack or measured project outcome.",
+            ],
+          },
+        ],
         liveUrl: "https://linkupsocial.in/",
         technologies: [],
-        caseStudyEnabled: false,
+        caseStudyEnabled: true,
         theme: "paper",
       },
       {
@@ -345,9 +539,49 @@ export const portfolio = {
         company: "Linkup Group Pvt Ltd",
         description:
           "A modern web development agency website showcasing custom development services, digital solutions, selected projects, case studies, and client enquiry experiences.",
+        overview:
+          "LinkUp Web introduces a web-development agency through service information, selected projects, case-study discovery and contact pathways.",
+        problem:
+          "Visitors evaluating a web partner need to understand the agency's approach, see examples of its work and know how to discuss a project.",
+        solution:
+          "The website connects a bold opening statement with service and strategy explanations, a selected-work area and prominent project-enquiry actions.",
+        features: [
+          "Website design, development and strategy content",
+          "Selected project and case-study entry points",
+          "Services, company and blog navigation",
+          "Contact, quote and project-enquiry actions",
+        ],
+        caseStudySections: [
+          {
+            title: "From first impression to project enquiry",
+            items: [
+              {
+                title: "Position the studio",
+                description:
+                  "Large display typography and visual technology ribbons introduce the agency alongside direct contact and quote actions.",
+              },
+              {
+                title: "Explain the approach",
+                description:
+                  "Service and website-strategy sections describe design, development and user-experience offerings without requiring visitors to infer the scope from a project list.",
+              },
+              {
+                title: "Explore and connect",
+                description:
+                  "Selected-work and case-study areas sit alongside navigation to services, company information and contact, providing paths from discovery to an enquiry.",
+              },
+            ],
+          },
+          {
+            title: "Professional context",
+            paragraphs: [
+              "This is listed as Linkup Group company work. The site's advertised services do not establish the technology used to build the site or a project-specific personal responsibility.",
+            ],
+          },
+        ],
         liveUrl: "https://linkupweb.in/",
         technologies: [],
-        caseStudyEnabled: false,
+        caseStudyEnabled: true,
         theme: "ink",
       },
     ] as Project[],

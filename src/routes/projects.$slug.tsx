@@ -114,11 +114,7 @@ function CaseStudy() {
               Case study — {p.category === "company" ? "Company work" : "Personal project"}
             </SectionLabel>
           </div>
-          <MaskedHeading
-            as="h1"
-            lines={[p.title]}
-            className="mt-6 text-[clamp(2.5rem,14vw,13rem)]"
-          />
+          <MaskedHeading as="h1" lines={[p.title]} className="mt-6 text-[clamp(2.5rem,9vw,9rem)]" />
           {p.subtitle && (
             <p
               data-reveal
@@ -141,7 +137,7 @@ function CaseStudy() {
                 p.year && ["Year", p.year],
                 p.status && ["Status", p.status],
                 p.company && !p.confidential && ["Company", p.company],
-                ["Stack", `${p.technologies.length} technologies`],
+                p.technologies.length > 0 && ["Stack", `${p.technologies.length} technologies`],
               ]
                 .filter(Boolean)
                 .map((row) => {
@@ -155,9 +151,43 @@ function CaseStudy() {
                 })}
             </dl>
           </div>
-          <div data-reveal className="mt-14 aspect-[16/9] overflow-hidden border">
-            <ProjectArt project={p} />
-          </div>
+          {(p.liveUrl || p.githubUrl || (p.sourceLinks?.length ?? 0) > 0) && (
+            <div data-reveal className="mt-10 flex flex-wrap gap-3">
+              {p.liveUrl && (
+                <EdButton href={p.liveUrl} external>
+                  Live preview
+                </EdButton>
+              )}
+              {p.sourceLinks?.map((link) => (
+                <EdButton key={link.url} href={link.url} external variant="outline">
+                  {link.label}
+                </EdButton>
+              ))}
+              {p.githubUrl && !p.sourceLinks?.some((link) => link.url === p.githubUrl) && (
+                <EdButton href={p.githubUrl} external variant="outline">
+                  View source
+                </EdButton>
+              )}
+            </div>
+          )}
+          <figure className="mt-14">
+            <div data-reveal className="aspect-[16/9] overflow-hidden border">
+              {p.coverImage ? (
+                <img
+                  src={p.coverImage}
+                  alt={`${p.title} project visual`}
+                  className="h-full w-full object-contain"
+                />
+              ) : (
+                <ProjectArt project={p} />
+              )}
+            </div>
+            {!p.coverImage && (
+              <figcaption className="label-mono mt-3 text-muted-foreground">
+                Illustrative project artwork — not a product screenshot
+              </figcaption>
+            )}
+          </figure>
 
           <div className="mt-10">
             {p.problem && (
@@ -166,61 +196,102 @@ function CaseStudy() {
               </Block>
             )}
             {p.solution && (
-              <Block n={num()} title="Engineering approach">
+              <Block n={num()} title="The solution">
                 <p className="text-lg text-muted-foreground">{p.solution}</p>
               </Block>
             )}
-            {p.architecture && (
+            {(p.architecture?.length ?? 0) > 0 && (
               <Block n={num()} title="System architecture">
-                <div className="flex flex-col gap-3 md:flex-row md:items-stretch">
-                  {p.architecture.map((a, i) => (
-                    <div key={a.layer} className="flex min-w-0 flex-1 items-center gap-3">
+                <ol className="flex flex-col gap-3 md:flex-row md:items-stretch">
+                  {p.architecture?.map((a, i) => (
+                    <li key={a.layer} className="flex min-w-0 flex-1 items-center gap-3">
                       <div className="min-w-0 flex-1 border bg-ink p-4 text-ink-foreground">
                         <p className="label-mono text-primary">{a.layer}</p>
-                        <ul className="mt-3 space-y-1 font-mono text-xs">
+                        <ul className="mt-3 space-y-1 break-words font-mono text-xs">
                           {a.items.map((x) => (
                             <li key={x}>{x}</li>
                           ))}
                         </ul>
                       </div>
                       {i < (p.architecture?.length ?? 0) - 1 && (
-                        <ArrowRight className="hidden size-4 shrink-0 text-primary md:block" />
+                        <ArrowRight
+                          aria-hidden="true"
+                          className="hidden size-4 shrink-0 text-primary md:block"
+                        />
                       )}
-                    </div>
+                    </li>
                   ))}
-                </div>
+                </ol>
                 <p className="label-mono mt-3 text-muted-foreground">Simplified overview</p>
               </Block>
             )}
-            {p.features && (
+            {(p.features?.length ?? 0) > 0 && (
               <Block n={num()} title="Functional modules">
-                <List items={p.features} />
+                <List items={p.features ?? []} />
               </Block>
             )}
-            {p.contributions && (
+            {p.caseStudySections?.map((section) => (
+              <Block key={section.title} n={num()} title={section.title}>
+                {section.intro && (
+                  <p className="text-lg leading-relaxed text-muted-foreground">{section.intro}</p>
+                )}
+                {(section.paragraphs?.length ?? 0) > 0 && (
+                  <div
+                    className={`space-y-5 text-lg leading-relaxed text-muted-foreground ${section.intro ? "mt-5" : ""}`}
+                  >
+                    {section.paragraphs?.map((paragraph) => (
+                      <p key={paragraph}>{paragraph}</p>
+                    ))}
+                  </div>
+                )}
+                {(section.items?.length ?? 0) > 0 && (
+                  <ol className="mt-6 grid grid-cols-1 gap-px border bg-border sm:grid-cols-2">
+                    {section.items?.map((item, index) => (
+                      <li key={item.title} className="min-w-0 bg-card p-5 sm:p-6">
+                        <span className="label-mono text-primary">
+                          {String(index + 1).padStart(2, "0")}
+                        </span>
+                        <h3 className="mt-4 break-words font-heading text-xl uppercase">
+                          {item.title}
+                        </h3>
+                        <p className="mt-3 leading-relaxed text-muted-foreground">
+                          {item.description}
+                        </p>
+                      </li>
+                    ))}
+                  </ol>
+                )}
+              </Block>
+            ))}
+            {(p.contributions?.length ?? 0) > 0 && (
               <Block n={num()} title="Key contributions">
-                <List items={p.contributions} />
+                <List items={p.contributions ?? []} />
               </Block>
             )}
-            {p.challenges && (
+            {(p.challenges?.length ?? 0) > 0 && (
               <Block n={num()} title="Challenges">
-                <List items={p.challenges} />
+                <List items={p.challenges ?? []} />
               </Block>
             )}
-            {p.results && (
+            {(p.results?.length ?? 0) > 0 && (
               <Block n={num()} title="Results">
-                <List items={p.results} />
+                <List items={p.results ?? []} />
               </Block>
             )}
-            <Block n={num()} title="Technology stack">
-              <ul className="flex flex-wrap gap-2">
-                {p.technologies.map((t) => (
-                  <li key={t} className="font-heading border border-foreground px-4 py-2 uppercase">
-                    {t}
-                  </li>
-                ))}
-              </ul>
-            </Block>
+            {p.technologies.length > 0 && (
+              <Block n={num()} title="Technology stack">
+                <ul className="flex flex-wrap gap-2">
+                  {p.technologies.map((t) => (
+                    <li
+                      key={t}
+                      className="font-heading border border-foreground px-4 py-2 uppercase"
+                    >
+                      {t}
+                    </li>
+                  ))}
+                </ul>
+              </Block>
+            )}
             {p.gallery && p.gallery.length > 0 && (
               <Block n={num()} title="Gallery">
                 <div className="grid grid-cols-1 gap-4 sm:grid-cols-2">
@@ -236,20 +307,12 @@ function CaseStudy() {
                 </div>
               </Block>
             )}
-            {(p.liveUrl || p.githubUrl) && (
-              <div data-reveal className="flex flex-wrap gap-3 border-t py-14">
-                {p.liveUrl && (
-                  <EdButton href={p.liveUrl} external>
-                    Visit live project
-                  </EdButton>
-                )}
-                {p.githubUrl && (
-                  <EdButton href={p.githubUrl} external variant="outline">
-                    View source
-                  </EdButton>
-                )}
-              </div>
-            )}
+            <Link
+              to="/work"
+              className="label-mono inline-flex items-center gap-2 border-t py-10 hover:text-primary"
+            >
+              <ArrowLeft className="size-3" /> Back to selected work
+            </Link>
           </div>
         </div>
 

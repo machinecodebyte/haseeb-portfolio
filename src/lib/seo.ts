@@ -147,10 +147,14 @@ export function projectHead(project: Project) {
     "@type": "CreativeWork",
     name: project.title,
     description: project.overview ?? project.description,
-    creator: {
-      "@type": "Person",
-      name: portfolio.profile.name,
-    },
+    ...(project.category === "personal"
+      ? {
+          creator: {
+            "@type": "Person",
+            name: portfolio.profile.name,
+          },
+        }
+      : {}),
     ...(canonical ? { url: canonical } : {}),
     ...(project.liveUrl ? { sameAs: project.liveUrl } : {}),
   };
